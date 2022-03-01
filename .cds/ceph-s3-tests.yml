@@ -2,9 +2,17 @@ name: ceph-s3-tests
 version: v2.0
 
 workflow:
-  root:
-    pipeline: root
+  ceph-s3-tests-infra2020:
+    pipeline: ceph-s3-tests
     application: ceph-s3-tests
+    environment: s3-tests-infra2020
+    conditions:
+      check:
+        - variable: cds.triggered_by.username
+          operator: ne
+          value: "cds.scheduler"
+    one_at_a_time: true
+    optional: true
 
 metadata:
   default_tags: git.branch,git.author,git.tag
