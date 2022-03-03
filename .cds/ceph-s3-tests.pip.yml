@@ -116,10 +116,7 @@ jobs:
           source virtualenv/bin/activate
           pip install awscli
           ENDPOINT="https://{{.cds.env.s3_server}}:{{.cds.env.s3_port}}"
-          for bucket in $(aws --profile s3-tests-admin --endpoint "$ENDPOINT" s3 ls s3:// | cut -d ' ' -f 3)
-          do
-            aws --profile s3-tests-admin --endpoint "$ENDPOINT" s3 rb --force "s3://$bucket" || true
-          done
+          python clean-all-buckets.py s3-tests-admin "$ENDPOINT"
 
     requirements:
       - model: Ubuntu-18.04-VM-b2-07
