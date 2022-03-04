@@ -3,8 +3,8 @@ version: v2.0
 
 workflow:
   root:
-    pipeline: oio-sds-root
-    application: oio-sds
+    pipeline: root
+    application: ceph-s3-tests
 
   ceph-s3-tests-infra2020:
     pipeline: ceph-s3-tests
