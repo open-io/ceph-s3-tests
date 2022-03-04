@@ -26,6 +26,7 @@ jobs:
           sed \
               -e s,%S3_SERVER%,{{.cds.env.s3_server}}, \
               -e s,%S3_PORT%,{{.cds.env.s3_port}}, \
+              -e s,%S3_PROJECT_NAME%,{{.cds.env.s3_project_name}}, \
               -e s,%U0_ACCESS%,{{.cds.env.u0_access}}, \
               -e s,%U0_SECRET%,{{.cds.env.u0_secret}}, \
               -e s,%U1_ACCESS%,{{.cds.env.u1_access}}, \
