@@ -1,3 +1,4 @@
 version: v1.0
 name: root
+default_payload: '{"git.author": "", "git.branch": "master", "git.hash": "", "git.hash.before": "", "git.message": "", "git.repository": "OPENIO/ceph-s3-tests", "git.tag": "", "infra_id": 2020}'
 jobs:
