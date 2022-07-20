@@ -14996,3 +14996,22 @@ def test_sse_s3_encrypted_upload_1mb():
 @attr('fails_on_dbstore')
 def test_sse_s3_encrypted_upload_8mb():
     _test_sse_s3_encrypted_upload(8*1024*1024)
+
+
+@attr(resource='bucket')
+def test_bucket_read_acp():
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+
+    main_client.create_bucket(Bucket=bucket_name)
+    main_client.put_bucket_acl(Bucket=bucket_name, GrantReadACP='id='+alt_user_id)
+    alt_client.get_bucket_acl(Bucket=bucket_name)
+    #try:
+    #    alt_client.put_bucket_acl(Bucket=bucket_name, GrantRead='id='+alt_user_id)
+    #except ClientError as e:
+    e = assert_raises(ClientError, alt_client.put_bucket_acl, Bucket=bucket_name, GrantRead='id='+alt_user_id)
+
+    status, error_code = _get_status_and_error_code(e.response)
+    eq(status, 403)
