@@ -15031,3 +15031,55 @@ def test_bucket_write_acp():
     status, error_code = _get_status_and_error_code(e.response)
     eq(status, 403)
     alt_client.put_bucket_acl(Bucket=bucket_name, GrantRead='id='+alt_user_id)
+
+
+@attr(resource='bucket')
+@attr(method='get')
+@attr(operation='allow garantee to read bucket cors')
+def test_bucket_read_cors():
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+
+    main_client.create_bucket(Bucket=bucket_name)
+    main_client.put_bucket_acl(Bucket=bucket_name, GrantRead='id='+alt_user_id)
+    alt_client.get_bucket_cors(Bucket=bucket_name)
+
+    config = {
+            'CORSRules' : [
+                {
+                    'AllowedMethods' : ['GET'],
+                    'AllowedOrigins' : ['*']
+                    }
+                ]
+            }
+    e = assert_raises(ClientError, alt_client.put_bucket_cors, Bucket=bucket_name, CORSConfiguration=config)
+    status, error_code = _get_status_and_error_code(e.response)
+    eq(status, 403)
+
+
+@attr(resource='bucket')
+@attr(method='put')
+@attr(operation='allow garantee to write bucket cors')
+def test_bucket_write_cors():
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+
+    main_client.create_bucket(Bucket=bucket_name)
+    main_client.put_bucket_acl(Bucket=bucket_name, GrantWrite='id='+alt_user_id)
+    e = assert_raises(ClientError, alt_client.get_bucket_acl, Bucket=bucket_name)
+    status, error_code = _get_status_and_error_code(e.response)
+    eq(status, 403)
+
+    config = {
+            'CORSRules' : [
+                {
+                    'AllowedMethods' : ['GET'],
+                    'AllowedOrigins' : ['*']
+                    }
+                ]
+            }
+    alt_client.put_bucket_cors(Bucket=bucket_name, CORSConfiguration=config)
