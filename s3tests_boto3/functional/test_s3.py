@@ -17107,3 +17107,256 @@ def test_bucket_acl_cross_account():
         run.description = description
         test_bucket_acl_cross_account.__name__ = description
         yield run
+
+def test_object_acl_cross_account():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    main_client.put_bucket_versioning(
+        Bucket=bucket_name, VersioningConfiguration={"Status": "Enabled"}
+    )
+    response = main_client.put_object(Bucket=bucket_name, Key=object_name)
+    version_id = response["VersionId"]
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+
+    def _put_object_acl(acl):
+        if acl == "READ":
+            main_client.put_object_acl(
+                Bucket=bucket_name, Key=object_name, GrantRead="id=" + alt_user_id
+            )
+        elif acl == "WRITE":
+            main_client.put_object_acl(
+                Bucket=bucket_name, Key=object_name, GrantWrite="id=" + alt_user_id
+            )
+        elif acl == "READ_ACP":
+            main_client.put_object_acl(
+                Bucket=bucket_name, Key=object_name, GrantReadACP="id=" + alt_user_id
+            )
+        elif acl == "WRITE_ACP":
+            main_client.put_object_acl(
+                Bucket=bucket_name, Key=object_name, GrantWriteACP="id=" + alt_user_id
+            )
+        elif acl == "FULL_CONTROL":
+            main_client.put_object_acl(
+                Bucket=bucket_name,
+                Key=object_name,
+                GrantFullControl="id=" + alt_user_id,
+            )
+
+    # Create test_cases list
+    test_cases = []
+
+    # GetObject
+    def _check_get_object(expected_result):
+        if expected_result:
+            alt_client.get_object(Bucket=bucket_name, Key=object_name)
+        else:
+            e = assert_raises(
+                ClientError, alt_client.get_object, Bucket=bucket_name, Key=object_name
+            )
+            status = _get_status(e.response)
+            eq(status, 403)
+
+    get_object_expected_result = {
+        "READ": True,
+        "WRITE": False,
+        "READ_ACP": False,
+        "WRITE_ACP": False,
+        "FULL_CONTROL": True,
+    }
+    for acl, expected_result in get_object_expected_result.items():
+        test_cases.append(
+            (
+                "test_get_object_cross_account_with_" + acl + "_acl",
+                acl,
+                _check_get_object,
+                expected_result,
+            )
+        )
+
+    # GetObjectVersion
+    def _check_get_object_version(expected_result):
+        if expected_result:
+            alt_client.get_object(
+                Bucket=bucket_name, Key=object_name, VersionId=version_id
+            )
+        else:
+            e = assert_raises(
+                ClientError,
+                alt_client.get_object,
+                Bucket=bucket_name,
+                Key=object_name,
+                VersionId=version_id,
+            )
+            status = _get_status(e.response)
+            eq(status, 403)
+
+    get_object_version_expected_result = {
+        "READ": True,
+        "WRITE": False,
+        "READ_ACP": False,
+        "WRITE_ACP": False,
+        "FULL_CONTROL": True,
+    }
+    for acl, expected_result in get_object_version_expected_result.items():
+        test_cases.append(
+            (
+                "test_get_object_version_cross_account_with_" + acl + "_acl",
+                acl,
+                _check_get_object_version,
+                expected_result,
+            )
+        )
+
+    # GetObjectAcl
+    def _check_get_object_acl(expected_result):
+        if expected_result:
+            alt_client.get_object_acl(Bucket=bucket_name, Key=object_name)
+        else:
+            e = assert_raises(
+                ClientError,
+                alt_client.get_object_acl,
+                Bucket=bucket_name,
+                Key=object_name,
+            )
+            status = _get_status(e.response)
+            eq(status, 403)
+
+    get_object_acl_expected_result = {
+        "READ": False,
+        "WRITE": False,
+        "READ_ACP": True,
+        "WRITE_ACP": False,
+        "FULL_CONTROL": True,
+    }
+    for acl, expected_result in get_object_acl_expected_result.items():
+        test_cases.append(
+            (
+                "test_get_object_acl_cross_account_with_" + acl + "_acl",
+                acl,
+                _check_get_object_acl,
+                expected_result,
+            )
+        )
+
+    # PutObjectAcl
+    def _check_put_object_acl(expected_result):
+        alt_user_id = get_alt_user_id()
+        if expected_result:
+            alt_client.put_object_acl(
+                Bucket=bucket_name,
+                Key=object_name,
+                GrantFullControl="id=" + alt_user_id,
+            )
+        else:
+            e = assert_raises(
+                ClientError,
+                alt_client.put_object_acl,
+                Bucket=bucket_name,
+                Key=object_name,
+                GrantFullControl="id=" + alt_user_id,
+            )
+            status = _get_status(e.response)
+            eq(status, 403)
+
+    put_object_acl_expected_result = {
+        "READ": False,
+        "WRITE": False,
+        "READ_ACP": False,
+        "WRITE_ACP": True,
+        "FULL_CONTROL": True,
+    }
+    for acl, expected_result in put_object_acl_expected_result.items():
+        test_cases.append(
+            (
+                "test_put_object_acl_cross_account_with_" + acl + "_acl",
+                acl,
+                _check_put_object_acl,
+                expected_result,
+            )
+        )
+
+    # GetObjectVersionAcl
+    def _check_get_object_version_acl(expected_result):
+        if expected_result:
+            alt_client.get_object_acl(
+                Bucket=bucket_name, Key=object_name, VersionId=version_id
+            )
+        else:
+            e = assert_raises(
+                ClientError,
+                alt_client.get_object_acl,
+                Bucket=bucket_name,
+                Key=object_name,
+                VersionId=version_id,
+            )
+            status = _get_status(e.response)
+            eq(status, 403)
+
+    get_object_version_acl_expected_result = {
+        "READ": False,
+        "WRITE": False,
+        "READ_ACP": True,
+        "WRITE_ACP": False,
+        "FULL_CONTROL": True,
+    }
+    for acl, expected_result in get_object_version_acl_expected_result.items():
+        test_cases.append(
+            (
+                "test_get_object_version_acl_cross_account_with_" + acl + "_acl",
+                acl,
+                _check_get_object_version_acl,
+                expected_result,
+            )
+        )
+
+    # PutObjectVersionAcl
+    def _check_put_object_version_acl(expected_result):
+        alt_user_id = get_alt_user_id()
+        if expected_result:
+            alt_client.put_object_acl(
+                Bucket=bucket_name,
+                Key=object_name,
+                GrantFullControl="id=" + alt_user_id,
+            )
+        else:
+            e = assert_raises(
+                ClientError,
+                alt_client.put_object_acl,
+                Bucket=bucket_name,
+                Key=object_name,
+                GrantFullControl="id=" + alt_user_id,
+            )
+            status = _get_status(e.response)
+            eq(status, 403)
+
+    put_object_version_acl_expected_result = {
+        "READ": False,
+        "WRITE": False,
+        "READ_ACP": False,
+        "WRITE_ACP": True,
+        "FULL_CONTROL": True,
+    }
+    for acl, expected_result in put_object_version_acl_expected_result.items():
+        test_cases.append(
+            (
+                "test_put_object_version_acl_cross_account_with_" + acl + "_acl",
+                acl,
+                _check_put_object_version_acl,
+                expected_result,
+            )
+        )
+
+    # Run test cases
+    for description, acl, check_func, expected in test_cases:
+
+        def run():
+            _put_object_acl(acl)
+            check_func(expected)
+
+        run.description = description
+        test_object_acl_cross_account.__name__ = description
+        yield run
