@@ -6,6 +6,17 @@ workflow:
     pipeline: root
     application: ceph-s3-tests
 
+  mirror:
+    pipeline: ceph-s3-tests-mirror
+    application: ceph-s3-tests
+    depends_on:
+      - root
+    conditions:
+      check:
+        - variable: cds.proj.mirror_to_github
+          operator: eq
+          value: "true"
+
   ceph-s3-tests-infra2020:
     pipeline: ceph-s3-tests
     application: ceph-s3-tests
