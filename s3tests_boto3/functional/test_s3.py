@@ -89,6 +89,9 @@ from . import (
     get_lc_debug_interval,
     )
 
+# backport from nose
+def eq(actual, expected):
+    assert actual == expected
 
 def _bucket_is_empty(bucket):
     is_empty = True
@@ -16350,765 +16353,2203 @@ def test_get_object_attributes():
     assert response['StorageClass'] == 'STANDARD'
     assert 'ObjectParts' not in response
 
-def test_bucket_acl_cross_account():
+# ListObjectsV2
+def test_list_bucket_cross_account_with_READ_acl():
     alt_client = get_alt_client()
     bucket_name = get_new_bucket_name()
     main_client = get_client()
     main_client.create_bucket(Bucket=bucket_name)
     alt_user_id = get_alt_user_id()
+    # put bucket acl READ for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantRead="id=" + alt_user_id
+    )
+    alt_client.list_objects_v2(Bucket=bucket_name)
 
-    def _put_bucket_acl(acl):
-        if acl == "READ":
-            main_client.put_bucket_acl(
-                Bucket=bucket_name, GrantRead="id=" + alt_user_id
-            )
-        elif acl == "WRITE":
-            main_client.put_bucket_acl(
-                Bucket=bucket_name, GrantWrite="id=" + alt_user_id
-            )
-        elif acl == "READ_ACP":
-            main_client.put_bucket_acl(
-                Bucket=bucket_name, GrantReadACP="id=" + alt_user_id
-            )
-        elif acl == "WRITE_ACP":
-            main_client.put_bucket_acl(
-                Bucket=bucket_name, GrantWriteACP="id=" + alt_user_id
-            )
-        elif acl == "FULL_CONTROL":
-            main_client.put_bucket_acl(
-                Bucket=bucket_name, GrantFullControl="id=" + alt_user_id
-            )
+def test_list_bucket_cross_account_with_WRITE_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWrite="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.list_objects_v2, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    # Create test_cases list
-    test_cases = []
+def test_list_bucket_cross_account_with_READ_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantReadACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.list_objects_v2, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    # ListObjectsV2
-    def _check_list_objects_v2(expected_result):
-        if expected_result:
-            alt_client.list_objects_v2(Bucket=bucket_name)
-        else:
-            e = assert_raises(
-                ClientError, alt_client.list_objects_v2, Bucket=bucket_name
-            )
-            status = _get_status(e.response)
-            assert status == 403
+def test_list_bucket_cross_account_with_WRITE_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWriteACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.list_objects_v2, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    list_bucket_expected_result = {
-        "READ": True,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": True,
-    }
-    for acl, expected_result in list_bucket_expected_result.items():
-        test_cases.append(
-            (
-                "test_list_bucket_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_list_objects_v2, expected_result,
-            )
-        )
+def test_list_bucket_cross_account_with_FULL_CONTROL_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl FULL CONTROL for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name,  GrantFullControl="id=" + alt_user_id
+    )
+    alt_client.list_objects_v2(Bucket=bucket_name)
 
-    # ListBucketVersions
-    def _check_list_bucket_versions(expected_result):
-        if expected_result:
-            alt_client.list_object_versions(Bucket=bucket_name)
-        else:
-            e = assert_raises(
-                ClientError, alt_client.list_object_versions, Bucket=bucket_name
-            )
-            status = _get_status(e.response)
-            assert status == 403
+# ListBucketVersions
+def test_list_bucket_versions_cross_account_with_READ_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantRead="id=" + alt_user_id
+    )
+    alt_client.list_object_versions(Bucket=bucket_name)
 
-    list_bucket_versions_expected_result = {
-        "READ": True,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": True,
-    }
-    for acl, expected_result in list_bucket_versions_expected_result.items():
-        test_cases.append(
-            (
-                "test_list_bucket_versions_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_list_bucket_versions,
-                expected_result,
-            )
-        )
+def test_list_bucket_versions_cross_account_with_WRITE_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWrite="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.list_object_versions, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    # ListBucketMultipartUploads
-    def _check_list_bucket_multipart_uploads(expected_result):
-        if expected_result:
-            alt_client.list_multipart_uploads(Bucket=bucket_name)
-        else:
-            e = assert_raises(
-                ClientError, alt_client.list_multipart_uploads, Bucket=bucket_name
-            )
-            status = _get_status(e.response)
-            assert status == 403
+def test_list_bucket_versions_cross_account_with_READ_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantReadACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.list_object_versions, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    list_bucket_multipart_uploads_expected_result = {
-        "READ": True,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": True,
-    }
-    for acl, expected_result in list_bucket_multipart_uploads_expected_result.items():
-        test_cases.append(
-            (
-                "test_list_bucket_multipart_uploads_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_list_bucket_multipart_uploads,
-                expected_result,
-            )
-        )
+def test_list_bucket_versions_cross_account_with_WRITE_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWriteACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.list_object_versions, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    # PutObject
-    def _check_put_object(expected_result):
-        if expected_result:
-            alt_client.put_object(Bucket=bucket_name, Key="foo")
-        else:
-            e = assert_raises(
-                ClientError, alt_client.put_object, Bucket=bucket_name, Key="foo"
-            )
-            status = _get_status(e.response)
-            assert status == 403
+def test_list_bucket_versions_cross_account_with_FULL_CONTROL_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl FULL CONTROL for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name,  GrantFullControl="id=" + alt_user_id
+    )
+    alt_client.list_object_versions(Bucket=bucket_name)
 
-    put_object_expected_result = {
-        "READ": False,
-        "WRITE": True,
-        "READ_ACP": False,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": True,
-    }
-    for acl, expected_result in put_object_expected_result.items():
-        test_cases.append(
-            (
-                "test_put_object_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_put_object,
-                expected_result,
-            )
-        )
+# ListBucketMultipartUploads
+def test_list_bucket_multipart_uploads_cross_account_with_READ_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantRead="id=" + alt_user_id
+    )
+    alt_client.list_multipart_uploads(Bucket=bucket_name)
 
-    # GetBucketAcl
-    def _check_get_bucket_acl(expected_result):
-        if expected_result:
-            alt_client.get_bucket_acl(Bucket=bucket_name)
-        else:
-            e = assert_raises(
-                ClientError, alt_client.get_bucket_acl, Bucket=bucket_name
-            )
-            status = _get_status(e.response)
-            assert status == 403
+def test_list_bucket_multipart_uploads_cross_account_with_WRITE_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWrite="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.list_multipart_uploads, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    get_bucket_acl_expected_result = {
-        "READ": False,
-        "WRITE": False,
-        "READ_ACP": True,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": True,
-    }
-    for acl, expected_result in get_bucket_acl_expected_result.items():
-        test_cases.append(
-            (
-                "test_get_bucket_acl_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_get_bucket_acl,
-                expected_result,
-            )
-        )
+def test_list_bucket_multipart_uploads_cross_account_with_READ_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantReadACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.list_multipart_uploads, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    # PutBucketAcl
-    def _check_put_bucket_acl(expected_result):
-        alt_user_id = get_alt_user_id()
-        if expected_result:
-            alt_client.put_bucket_acl(
-                Bucket=bucket_name, GrantFullControl="id=" + alt_user_id
-            )
-        else:
-            e = assert_raises(
-                ClientError,
-                alt_client.put_bucket_acl,
-                Bucket=bucket_name,
-                GrantFullControl="id=" + alt_user_id,
-            )
-            status = _get_status(e.response)
-            assert status == 403
+def test_list_bucket_multipart_uploads_cross_account_with_WRITE_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWriteACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.list_multipart_uploads, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    put_bucket_acl_expected_result = {
-        "READ": False,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": True,
-        "FULL_CONTROL": True,
-    }
-    for acl, expected_result in put_bucket_acl_expected_result.items():
-        test_cases.append(
-            (
-                "test_put_bucket_acl_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_put_bucket_acl,
-                expected_result,
-            )
-        )
+def test_list_bucket_multipart_uploads_cross_account_with_FULL_CONTROL_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl FULL CONTROL for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name,  GrantFullControl="id=" + alt_user_id
+    )
+    alt_client.list_multipart_uploads(Bucket=bucket_name)
 
-    # GetBucketCORS
-    def _check_get_bucket_cors(expected_result):
-        if expected_result:
-            alt_client.get_bucket_cors(Bucket=bucket_name)
-        else:
-            e = assert_raises(
-                ClientError, alt_client.get_bucket_cors, Bucket=bucket_name
-            )
-            status = _get_status(e.response)
-            assert status == 403
+# PutObject
+def test_put_object_cross_account_with_READ_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantRead="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.put_object, Bucket=bucket_name, Key="foo"
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    get_bucket_cors_expected_result = {
-        "READ": False,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": False,
-    }
-    for acl, expected_result in get_bucket_cors_expected_result.items():
-        test_cases.append(
-            (
-                "test_get_bucket_cors_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_get_bucket_cors,
-                expected_result,
-            )
-        )
+def test_put_object_cross_account_with_WRITE_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWrite="id=" + alt_user_id
+    )
+    alt_client.put_object(Bucket=bucket_name, Key="foo")
 
-    # PutBucketCORS
-    def _check_put_bucket_cors(expected_result):
-        config = {"CORSRules": [{"AllowedMethods": ["GET"], "AllowedOrigins": ["*"]}]}
-        if expected_result:
-            alt_client.put_bucket_cors(Bucket=bucket_name, CORSConfiguration=config)
-        else:
-            e = assert_raises(
-                ClientError,
-                alt_client.put_bucket_cors,
-                Bucket=bucket_name,
-                CORSConfiguration=config,
-            )
-            status = _get_status(e.response)
-            assert status == 403
+def test_put_object_cross_account_with_READ_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantReadACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.put_object, Bucket=bucket_name, Key="foo"
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    put_bucket_cors_expected_result = {
-        "READ": False,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": False,
-    }
-    for acl, expected_result in put_bucket_cors_expected_result.items():
-        test_cases.append(
-            (
-                "test_put_bucket_cors_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_put_bucket_cors,
-                expected_result,
-            )
-        )
+def test_put_object_cross_account_with_WRITE_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWriteACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.put_object, Bucket=bucket_name, Key="foo"
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    # GetBucketTagging
-    def _check_get_bucket_tagging(expected_result):
-        if expected_result:
-            alt_client.get_bucket_tagging(Bucket=bucket_name)
-        else:
-            e = assert_raises(
-                ClientError, alt_client.get_bucket_tagging, Bucket=bucket_name
-            )
-            status = _get_status(e.response)
-            assert status == 403
+def test_put_object_cross_account_with_FULL_CONTROL_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl FULL CONTROL for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name,  GrantFullControl="id=" + alt_user_id
+    )
+    alt_client.put_object(Bucket=bucket_name, Key="foo")
 
-    get_bucket_tagging_expected_result = {
-        "READ": False,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": False,
-    }
-    for acl, expected_result in get_bucket_tagging_expected_result.items():
-        test_cases.append(
-            (
-                "test_get_bucket_tagging_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_get_bucket_tagging,
-                expected_result,
-            )
-        )
+# GetBucketAcl
+def test_get_bucket_acl_cross_account_with_READ_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantRead="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_acl, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    # PutBucketTagging
-    def _check_put_bucket_tagging(expected_result):
-        tags = {"TagSet": [{"Key": "test", "Value": "test"}]}
-        if expected_result:
-            alt_client.put_bucket_tagging(Bucket=bucket_name, Tagging=tags)
-        else:
-            e = assert_raises(
-                ClientError,
-                alt_client.put_bucket_tagging,
-                Bucket=bucket_name,
-                Tagging=tags,
-            )
-            status = _get_status(e.response)
-            assert status == 403
+def test_get_bucket_acl_cross_account_with_WRITE_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWrite="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_acl, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    put_bucket_tagging_expected_result = {
-        "READ": False,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": False,
-    }
-    for acl, expected_result in put_bucket_tagging_expected_result.items():
-        test_cases.append(
-            (
-                "test_put_bucket_tagging_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_put_bucket_tagging,
-                expected_result,
-            )
-        )
+def test_get_bucket_acl_cross_account_with_READ_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantReadACP="id=" + alt_user_id
+    )
+    alt_client.get_bucket_acl(Bucket=bucket_name)
 
-    # GetLifecycleConfiguration
-    def _check_get_bucket_lifecycle(expected_result):
-        if expected_result:
-            alt_client.get_bucket_lifecycle(Bucket=bucket_name)
-        else:
-            e = assert_raises(
-                ClientError, alt_client.get_bucket_lifecycle, Bucket=bucket_name
-            )
-            status = _get_status(e.response)
-            assert status == 403
+def test_get_bucket_acl_cross_account_with_WRITE_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWriteACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_acl, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    get_bucket_lifecycle_expected_result = {
-        "READ": False,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": False,
-    }
-    for acl, expected_result in get_bucket_lifecycle_expected_result.items():
-        test_cases.append(
-            (
-                "test_get_bucket_lifecycle_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_get_bucket_lifecycle,
-                expected_result,
-            )
-        )
+def test_get_bucket_acl_cross_account_with_FULL_CONTROL_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl FULL CONTROL for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name,  GrantFullControl="id=" + alt_user_id
+    )
+    alt_client.get_bucket_acl(Bucket=bucket_name)
 
-    # PutLifecycleConfiguration
-    def _check_put_bucket_lifecycle(expected_result):
-        lifecycle_configuration = {
-            "Rules": [
-                {
-                    "Expiration": {
-                        "Days": 7,
-                    },
-                    "ID": "myfirstrule",
-                    "Filter": {"Prefix": "garbage/"},
-                    "Status": "Enabled",
-                }
-            ]
-        }
-        if expected_result:
-            alt_client.put_bucket_lifecycle_configuration(
-                Bucket=bucket_name, LifecycleConfiguration=lifecycle_configuration
-            )
-        else:
-            e = assert_raises(
-                ClientError,
-                alt_client.put_bucket_lifecycle_configuration,
-                Bucket=bucket_name,
-                LifecycleConfiguration=lifecycle_configuration,
-            )
-            status = _get_status(e.response)
-            assert status == 403
+# PutBucketAcl
+def test_put_bucket_acl_cross_account_with_READ_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantRead="id=" + alt_user_id
+    )
+    alt_user_id = get_alt_user_id()
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_acl,
+        Bucket=bucket_name,
+        GrantFullControl="id=" + alt_user_id,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    put_bucket_lifecycle_expected_result = {
-        "READ": False,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": False,
-    }
-    for acl, expected_result in put_bucket_lifecycle_expected_result.items():
-        test_cases.append(
-            (
-                "test_put_bucket_lifecycle_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_put_bucket_lifecycle,
-                expected_result,
-            )
-        )
+def test_put_bucket_acl_cross_account_with_WRITE_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWrite="id=" + alt_user_id
+    )
+    alt_user_id = get_alt_user_id()
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_acl,
+        Bucket=bucket_name,
+        GrantFullControl="id=" + alt_user_id,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    # DeleteLifecycleConfiguration
-    def _check_delete_bucket_lifecycle(expected_result):
-        if expected_result:
-            alt_client.delete_bucket_lifecycle(Bucket=bucket_name)
-        else:
-            e = assert_raises(
-                ClientError, alt_client.delete_bucket_lifecycle, Bucket=bucket_name
-            )
-            status = _get_status(e.response)
-            assert status == 403
+def test_put_bucket_acl_cross_account_with_READ_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantReadACP="id=" + alt_user_id
+    )
+    alt_user_id = get_alt_user_id()
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_acl,
+        Bucket=bucket_name,
+        GrantFullControl="id=" + alt_user_id,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    delete_bucket_lifecycle_expected_result = {
-        "READ": False,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": False,
-    }
-    for acl, expected_result in delete_bucket_lifecycle_expected_result.items():
-        test_cases.append(
-            (
-                "test_delete_bucket_lifecycle_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_delete_bucket_lifecycle,
-                expected_result,
-            )
-        )
+def test_put_bucket_acl_cross_account_with_WRITE_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWriteACP="id=" + alt_user_id
+    )
+    alt_user_id = get_alt_user_id()
+    alt_client.put_bucket_acl(
+        Bucket=bucket_name, GrantFullControl="id=" + alt_user_id
+    )
 
-    # GetBucketVersioning
-    def _check_get_bucket_versioning(expected_result):
-        if expected_result:
-            alt_client.get_bucket_versioning(Bucket=bucket_name)
-        else:
-            e = assert_raises(
-                ClientError, alt_client.get_bucket_versioning, Bucket=bucket_name
-            )
-            status = _get_status(e.response)
-            assert status == 403
+def test_put_bucket_acl_cross_account_with_FULL_CONTROL_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl FULL CONTROL for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name,  GrantFullControl="id=" + alt_user_id
+    )
+    alt_user_id = get_alt_user_id()
+    alt_client.put_bucket_acl(
+        Bucket=bucket_name, GrantFullControl="id=" + alt_user_id
+    )
 
-    get_bucket_versioning_expected_result = {
-        "READ": False,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": False,
-    }
-    for acl, expected_result in get_bucket_versioning_expected_result.items():
-        test_cases.append(
-            (
-                "test_get_bucket_versioning_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_get_bucket_versioning,
-                expected_result,
-            )
-        )
+# GetBucketCORS
+def test_get_bucket_cors_cross_account_with_READ_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantRead="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_cors, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    # PutBucketVersioning
-    def _check_put_bucket_versioning(expected_result):
-        versioning_configuration = {"Status": "Enabled"}
-        if expected_result:
-            alt_client.put_bucket_versioning(
-                Bucket=bucket_name, VersioningConfiguration=versioning_configuration
-            )
-        else:
-            e = assert_raises(
-                ClientError,
-                alt_client.put_bucket_versioning,
-                Bucket=bucket_name,
-                VersioningConfiguration=versioning_configuration,
-            )
-            status = _get_status(e.response)
-            assert status == 403
+def test_get_bucket_cors_cross_account_with_WRITE_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWrite="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_cors, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    put_bucket_versioning_expected_result = {
-        "READ": False,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": False,
-    }
-    for acl, expected_result in put_bucket_versioning_expected_result.items():
-        test_cases.append(
-            (
-                "test_put_bucket_versioning_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_put_bucket_versioning,
-                expected_result,
-            )
-        )
+def test_get_bucket_cors_cross_account_with_READ_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantReadACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_cors, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    # GetBucketObjectLockConfiguration
-    def _check_get_object_lock_configuration(expected_result):
-        if expected_result:
-            alt_client.get_object_lock_configuration(Bucket=bucket_name)
-        else:
-            e = assert_raises(
-                ClientError, alt_client.get_object_lock_configuration, Bucket=bucket_name
-            )
-            status = _get_status(e.response)
-            assert status == 403
-    get_object_lock_configuration_expected_result = {
-        "READ": False,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": False,
-    }
-    for acl, expected_result in get_object_lock_configuration_expected_result.items():
-        test_cases.append(
-            (
-                "test_get_object_lock_configuration_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_get_object_lock_configuration,
-                expected_result,
-            )
-        )
+def test_get_bucket_cors_cross_account_with_WRITE_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWriteACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_cors, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    # PutBucketObjectLockConfiguration
-    def _check_put_object_lock_configuration(expected_result):
-        object_lock_configuration = {
-            'ObjectLockEnabled':'Enabled',
-            'Rule': {
-                'DefaultRetention': {
-                    'Mode':'GOVERNANCE',
-                    'Days':1
-                }
-            }
-        }
-        if expected_result:
-            alt_client.put_object_lock_configuration(
-                Bucket=bucket_name, ObjectLockConfiguration=object_lock_configuration
-            )
-        else:
-            e = assert_raises(
-                ClientError,
-                alt_client.put_object_lock_configuration,
-                Bucket=bucket_name,
-                ObjectLockConfiguration=object_lock_configuration,
-            )
-            status = _get_status(e.response)
-            assert status == 403
+def test_get_bucket_cors_cross_account_with_FULL_CONTROL_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl FULL CONTROL for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name,  GrantFullControl="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_cors, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    put_object_lock_configuration_expected_result = {
-        "READ": False,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": False,
-    }
-    for acl, expected_result in put_object_lock_configuration_expected_result.items():
-        test_cases.append(
-            (
-                "test_put_object_lock_configuration_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_put_object_lock_configuration,
-                expected_result,
-            )
-        )
+# PutBucketCORS
+def test_put_bucket_cors_cross_account_with_READ_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantRead="id=" + alt_user_id
+    )
+    config = {"CORSRules": [{"AllowedMethods": ["GET"], "AllowedOrigins": ["*"]}]}
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_cors,
+        Bucket=bucket_name,
+        CORSConfiguration=config,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    # GetBucketWebsite
-    def _check_get_bucket_website(expected_result):
-        if expected_result:
-            alt_client.get_bucket_website(Bucket=bucket_name)
-        else:
-            e = assert_raises(
-                ClientError, alt_client.get_bucket_website, Bucket=bucket_name
-            )
-            status = _get_status(e.response)
-            assert status == 403
-    get_bucket_website_expected_result = {
-        "READ": False,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": False,
-    }
-    for acl, expected_result in get_bucket_website_expected_result.items():
-        test_cases.append(
-            (
-                "test_get_bucket_website_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_get_bucket_website,
-                expected_result,
-            )
-        )
+def test_put_bucket_cors_cross_account_with_WRITE_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWrite="id=" + alt_user_id
+    )
+    config = {"CORSRules": [{"AllowedMethods": ["GET"], "AllowedOrigins": ["*"]}]}
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_cors,
+        Bucket=bucket_name,
+        CORSConfiguration=config,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    # PutBucketWebsite
-    def _check_put_bucket_website(expected_result):
-        website_config = {
-            'IndexDocument': {
-                'Suffix': 'foo'
-            }
-        }
-        if expected_result:
-            alt_client.put_bucket_website(
-                    Bucket=bucket_name, WebsiteConfiguration=website_config
-            )
-        else:
-            e = assert_raises(
-                ClientError,
-                alt_client.put_bucket_website,
-                Bucket=bucket_name,
-                WebsiteConfiguration=website_config,
-            )
-            status = _get_status(e.response)
-            assert status == 403
+def test_put_bucket_cors_cross_account_with_READ_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantReadACP="id=" + alt_user_id
+    )
+    config = {"CORSRules": [{"AllowedMethods": ["GET"], "AllowedOrigins": ["*"]}]}
+    e = assert_raises(
+       ClientError,
+        alt_client.put_bucket_cors,
+        Bucket=bucket_name,
+        CORSConfiguration=config,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    put_bucket_website_expected_result = {
-        "READ": False,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": False,
-    }
-    for acl, expected_result in put_bucket_website_expected_result.items():
-        test_cases.append(
-            (
-                "test_put_bucket_website_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_put_bucket_website,
-                expected_result,
-            )
-        )
+def test_put_bucket_cors_cross_account_with_WRITE_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWriteACP="id=" + alt_user_id
+    )
+    config = {"CORSRules": [{"AllowedMethods": ["GET"], "AllowedOrigins": ["*"]}]}
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_cors,
+        Bucket=bucket_name,
+        CORSConfiguration=config,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    # DeleteBucketWebsite
-    def _check_delete_bucket_website(expected_result):
-        if expected_result:
-            alt_client.delete_bucket_website(Bucket=bucket_name)
-        else:
-            e = assert_raises(
-                ClientError, alt_client.delete_bucket_website, Bucket=bucket_name
-            )
-            status = _get_status(e.response)
-            assert status == 403
-    delete_bucket_website_expected_result = {
-        "READ": False,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": False,
-    }
-    for acl, expected_result in delete_bucket_website_expected_result.items():
-        test_cases.append(
-            (
-                "test_delete_bucket_website_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_delete_bucket_website,
-                expected_result,
-            )
-        )
+def test_put_bucket_cors_cross_account_with_FULL_CONTROL_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl FULL CONTROL for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name,  GrantFullControl="id=" + alt_user_id
+    )
+    config = {"CORSRules": [{"AllowedMethods": ["GET"], "AllowedOrigins": ["*"]}]}
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_cors,
+        Bucket=bucket_name,
+        CORSConfiguration=config,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    # GetEncryptionConfiguration
-    def _check_get_bucket_encryption(expected_result):
-        if expected_result:
-            alt_client.get_bucket_encryption(Bucket=bucket_name)
-        else:
-            e = assert_raises(
-                ClientError, alt_client.get_bucket_encryption, Bucket=bucket_name
-            )
-            status = _get_status(e.response)
-            assert status == 403
-    get_bucket_encryption_expected_result = {
-        "READ": False,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": False,
-    }
-    for acl, expected_result in get_bucket_encryption_expected_result.items():
-        test_cases.append(
-            (
-                "test_get_bucket_encryption_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_get_bucket_encryption,
-                expected_result,
-            )
-        )
+# GetBucketTagging
+def test_get_bucket_tagging_cross_account_with_READ_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantRead="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_tagging, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    # PutEncryptionConfiguration
-    def _check_put_bucket_encryption(expected_result):
-        server_side_encryption_conf = {
-            'Rules': [
-                {
-                    'ApplyServerSideEncryptionByDefault': {
-                        'SSEAlgorithm': 'AES256'
-                    }
+def test_get_bucket_tagging_cross_account_with_WRITE_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWrite="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_tagging, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_bucket_tagging_cross_account_with_READ_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantReadACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_tagging, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_bucket_tagging_cross_account_with_WRITE_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWriteACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_tagging, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_bucket_tagging_cross_account_with_FULL_CONTROL_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl FULL CONTROL for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name,  GrantFullControl="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_tagging, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+# PutBucketTagging
+def test_put_bucket_tagging_cross_account_with_READ_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantRead="id=" + alt_user_id
+    )
+    tags = {"TagSet": [{"Key": "test", "Value": "test"}]}
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_tagging,
+        Bucket=bucket_name,
+        Tagging=tags,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_put_bucket_tagging_cross_account_with_WRITE_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWrite="id=" + alt_user_id
+    )
+    tags = {"TagSet": [{"Key": "test", "Value": "test"}]}
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_tagging,
+        Bucket=bucket_name,
+        Tagging=tags,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_put_bucket_tagging_cross_account_with_READ_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantReadACP="id=" + alt_user_id
+    )
+    tags = {"TagSet": [{"Key": "test", "Value": "test"}]}
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_tagging,
+        Bucket=bucket_name,
+        Tagging=tags,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_put_bucket_tagging_cross_account_with_WRITE_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWriteACP="id=" + alt_user_id
+    )
+    tags = {"TagSet": [{"Key": "test", "Value": "test"}]}
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_tagging,
+        Bucket=bucket_name,
+        Tagging=tags,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_put_bucket_tagging_cross_account_with_FULL_CONTROL_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl FULL CONTROL for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name,  GrantFullControl="id=" + alt_user_id
+    )
+    tags = {"TagSet": [{"Key": "test", "Value": "test"}]}
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_tagging,
+        Bucket=bucket_name,
+        Tagging=tags,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+# GetLifecycleConfiguration
+def test_get_bucket_lifecycle_cross_account_with_READ_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantRead="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_lifecycle, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_bucket_lifecycle_cross_account_with_WRITE_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWrite="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_lifecycle, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_bucket_lifecycle_cross_account_with_READ_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantReadACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_lifecycle, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_bucket_lifecycle_cross_account_with_WRITE_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWriteACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_lifecycle, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_bucket_lifecycle_cross_account_with_FULL_CONTROL_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl FULL CONTROL for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name,  GrantFullControl="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_lifecycle, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+# PutLifecycleConfiguration
+def test_put_bucket_lifecycle_cross_account_with_READ_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantRead="id=" + alt_user_id
+    )
+    lifecycle_configuration = {
+        "Rules": [
+            {
+                "Expiration": {
+                    "Days": 7,
                 },
-            ]
+                "ID": "myfirstrule",
+                "Filter": {"Prefix": "garbage/"},
+                "Status": "Enabled",
+            }
+        ]
+    }
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_lifecycle_configuration,
+        Bucket=bucket_name,
+        LifecycleConfiguration=lifecycle_configuration,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_put_bucket_lifecycle_cross_account_with_WRITE_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWrite="id=" + alt_user_id
+    )
+    lifecycle_configuration = {
+        "Rules": [
+            {
+                "Expiration": {
+                    "Days": 7,
+                },
+                "ID": "myfirstrule",
+                "Filter": {"Prefix": "garbage/"},
+                "Status": "Enabled",
+            }
+        ]
+    }
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_lifecycle_configuration,
+        Bucket=bucket_name,
+        LifecycleConfiguration=lifecycle_configuration,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_put_bucket_lifecycle_cross_account_with_READ_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantReadACP="id=" + alt_user_id
+    )
+    lifecycle_configuration = {
+        "Rules": [
+            {
+                "Expiration": {
+                    "Days": 7,
+                },
+                "ID": "myfirstrule",
+                "Filter": {"Prefix": "garbage/"},
+                "Status": "Enabled",
+            }
+        ]
+    }
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_lifecycle_configuration,
+        Bucket=bucket_name,
+        LifecycleConfiguration=lifecycle_configuration,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_put_bucket_lifecycle_cross_account_with_WRITE_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWriteACP="id=" + alt_user_id
+    )
+    lifecycle_configuration = {
+        "Rules": [
+            {
+                "Expiration": {
+                    "Days": 7,
+                },
+                "ID": "myfirstrule",
+                "Filter": {"Prefix": "garbage/"},
+                "Status": "Enabled",
+            }
+        ]
+    }
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_lifecycle_configuration,
+        Bucket=bucket_name,
+        LifecycleConfiguration=lifecycle_configuration,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_put_bucket_lifecycle_cross_account_with_FULL_CONTROL_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl FULL CONTROL for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name,  GrantFullControl="id=" + alt_user_id
+    )
+    lifecycle_configuration = {
+        "Rules": [
+            {
+                "Expiration": {
+                    "Days": 7,
+                },
+                "ID": "myfirstrule",
+                "Filter": {"Prefix": "garbage/"},
+                "Status": "Enabled",
+            }
+        ]
+    }
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_lifecycle_configuration,
+        Bucket=bucket_name,
+        LifecycleConfiguration=lifecycle_configuration,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+# DeleteLifecycleConfiguration
+def test_delete_bucket_lifecycle_cross_account_with_READ_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantRead="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.delete_bucket_lifecycle, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_delete_bucket_lifecycle_cross_account_with_WRITE_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWrite="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.delete_bucket_lifecycle, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_delete_bucket_lifecycle_cross_account_with_READ_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantReadACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.delete_bucket_lifecycle, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_delete_bucket_lifecycle_cross_account_with_WRITE_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWriteACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.delete_bucket_lifecycle, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_delete_bucket_lifecycle_cross_account_with_FULL_CONTROL_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl FULL CONTROL for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name,  GrantFullControl="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.delete_bucket_lifecycle, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+# GetBucketVersioning
+def test_get_bucket_versioning_cross_account_with_READ_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantRead="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_versioning, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_bucket_versioning_cross_account_with_WRITE_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWrite="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_versioning, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_bucket_versioning_cross_account_with_READ_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantReadACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_versioning, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_bucket_versioning_cross_account_with_WRITE_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWriteACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_versioning, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_bucket_versioning_cross_account_with_FULL_CONTROL_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl FULL CONTROL for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name,  GrantFullControl="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_versioning, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+# PutBucketVersioning
+def test_put_bucket_versioning_cross_account_with_READ_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantRead="id=" + alt_user_id
+    )
+    versioning_configuration = {"Status": "Enabled"}
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_versioning,
+        Bucket=bucket_name,
+        VersioningConfiguration=versioning_configuration,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_put_bucket_versioning_cross_account_with_WRITE_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWrite="id=" + alt_user_id
+    )
+    versioning_configuration = {"Status": "Enabled"}
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_versioning,
+        Bucket=bucket_name,
+        VersioningConfiguration=versioning_configuration,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_put_bucket_versioning_cross_account_with_READ_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantReadACP="id=" + alt_user_id
+    )
+    versioning_configuration = {"Status": "Enabled"}
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_versioning,
+        Bucket=bucket_name,
+        VersioningConfiguration=versioning_configuration,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_put_bucket_versioning_cross_account_with_WRITE_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWriteACP="id=" + alt_user_id
+    )
+    versioning_configuration = {"Status": "Enabled"}
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_versioning,
+        Bucket=bucket_name,
+        VersioningConfiguration=versioning_configuration,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_put_bucket_versioning_cross_account_with_FULL_CONTROL_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl FULL CONTROL for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name,  GrantFullControl="id=" + alt_user_id
+    )
+    versioning_configuration = {"Status": "Enabled"}
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_versioning,
+        Bucket=bucket_name,
+        VersioningConfiguration=versioning_configuration,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+# GetBucketObjectLockConfiguration
+def test_get_object_lock_configuration_cross_account_with_READ_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantRead="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_object_lock_configuration, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_object_lock_configuration_cross_account_with_WRITE_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWrite="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_object_lock_configuration, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_object_lock_configuration_cross_account_with_READ_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantReadACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_object_lock_configuration, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_object_lock_configuration_cross_account_with_WRITE_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWriteACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_object_lock_configuration, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_object_lock_configuration_cross_account_with_FULL_CONTROL_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl FULL CONTROL for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name,  GrantFullControl="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_object_lock_configuration, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+# PutBucketObjectLockConfiguration
+def test_put_object_lock_configuration_cross_account_with_READ_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantRead="id=" + alt_user_id
+    )
+    object_lock_configuration = {
+        'ObjectLockEnabled':'Enabled',
+        'Rule': {
+            'DefaultRetention': {
+                'Mode':'GOVERNANCE',
+                'Days':1
+            }
         }
-        if expected_result:
-            alt_client.put_bucket_encryption(
-                Bucket=bucket_name,
-                ServerSideEncryptionConfiguration=server_side_encryption_conf,
-            )
-        else:
-            e = assert_raises(
-                ClientError,
-                alt_client.put_bucket_encryption,
-                Bucket=bucket_name,
-                ServerSideEncryptionConfiguration=server_side_encryption_conf,
-            )
-            status = _get_status(e.response)
-            assert status == 403
-
-    put_bucket_encryption_expected_result = {
-        "READ": False,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": False,
     }
-    for acl, expected_result in put_bucket_encryption_expected_result.items():
-        test_cases.append(
-            (
-                "test_put_bucket_encryption_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_put_bucket_encryption,
-                expected_result,
-            )
-        )
+    e = assert_raises(
+        ClientError,
+        alt_client.put_object_lock_configuration,
+        Bucket=bucket_name,
+        ObjectLockConfiguration=object_lock_configuration,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    # GetBucketLocation
-    def _check_get_bucket_location(expected_result):
-        if expected_result:
-            alt_client.get_bucket_location(Bucket=bucket_name)
-        else:
-            e = assert_raises(
-                ClientError, alt_client.get_bucket_location, Bucket=bucket_name
-            )
-            status = _get_status(e.response)
-            assert status == 403
-    get_bucket_location_expected_result = {
-        "READ": False,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": False,
+def test_put_object_lock_configuration_cross_account_with_WRITE_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWrite="id=" + alt_user_id
+    )
+    object_lock_configuration = {
+        'ObjectLockEnabled':'Enabled',
+        'Rule': {
+            'DefaultRetention': {
+                'Mode':'GOVERNANCE',
+                'Days':1
+            }
+        }
     }
-    for acl, expected_result in get_bucket_location_expected_result.items():
-        test_cases.append(
-            (
-                "test_get_bucket_location_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_get_bucket_location,
-                expected_result,
-            )
-        )
+    e = assert_raises(
+        ClientError,
+        alt_client.put_object_lock_configuration,
+        Bucket=bucket_name,
+        ObjectLockConfiguration=object_lock_configuration,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
+def test_put_object_lock_configuration_cross_account_with_READ_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantReadACP="id=" + alt_user_id
+    )
+    object_lock_configuration = {
+        'ObjectLockEnabled':'Enabled',
+        'Rule': {
+            'DefaultRetention': {
+                'Mode':'GOVERNANCE',
+                'Days':1
+            }
+        }
+    }
+    e = assert_raises(
+        ClientError,
+        alt_client.put_object_lock_configuration,
+        Bucket=bucket_name,
+        ObjectLockConfiguration=object_lock_configuration,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    # Run test cases
-    for description, acl, check_func, expected in test_cases:
+def test_put_object_lock_configuration_cross_account_with_WRITE_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWriteACP="id=" + alt_user_id
+    )
+    object_lock_configuration = {
+        'ObjectLockEnabled':'Enabled',
+        'Rule': {
+            'DefaultRetention': {
+                'Mode':'GOVERNANCE',
+                'Days':1
+            }
+        }
+    }
+    e = assert_raises(
+        ClientError,
+        alt_client.put_object_lock_configuration,
+        Bucket=bucket_name,
+        ObjectLockConfiguration=object_lock_configuration,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-        def run():
-            _put_bucket_acl(acl)
-            check_func(expected)
+def test_put_object_lock_configuration_cross_account_with_FULL_CONTROL_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl FULL CONTROL for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name,  GrantFullControl="id=" + alt_user_id
+    )
+    object_lock_configuration = {
+        'ObjectLockEnabled':'Enabled',
+        'Rule': {
+            'DefaultRetention': {
+                'Mode':'GOVERNANCE',
+                'Days':1
+            }
+        }
+    }
+    e = assert_raises(
+        ClientError,
+        alt_client.put_object_lock_configuration,
+        Bucket=bucket_name,
+        ObjectLockConfiguration=object_lock_configuration,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-        run.description = description
-        test_bucket_acl_cross_account.__name__ = description
-        yield run
+# GetBucketWebsite
+def test_get_bucket_website_cross_account_with_READ_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantRead="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_website, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-def test_object_acl_cross_account():
+def test_get_bucket_website_cross_account_with_WRITE_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWrite="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_website, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_bucket_website_cross_account_with_WRITE_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWriteACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_website, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_bucket_website_cross_account_with_FULL_CONTROL_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl FULL CONTROL for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name,  GrantFullControl="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_website, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+# PutBucketWebsite
+def test_put_bucket_website_cross_account_with_READ_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantRead="id=" + alt_user_id
+    )
+    website_config = {
+        'IndexDocument': {
+            'Suffix': 'foo'
+        }
+    }
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_website,
+        Bucket=bucket_name,
+        WebsiteConfiguration=website_config,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_put_bucket_website_cross_account_with_WRITE_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWrite="id=" + alt_user_id
+    )
+    website_config = {
+        'IndexDocument': {
+            'Suffix': 'foo'
+        }
+    }
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_website,
+        Bucket=bucket_name,
+        WebsiteConfiguration=website_config,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_put_bucket_website_cross_account_with_READ_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantReadACP="id=" + alt_user_id
+    )
+    website_config = {
+        'IndexDocument': {
+            'Suffix': 'foo'
+        }
+    }
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_website,
+        Bucket=bucket_name,
+        WebsiteConfiguration=website_config,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_put_bucket_website_cross_account_with_WRITE_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWriteACP="id=" + alt_user_id
+    )
+    website_config = {
+        'IndexDocument': {
+            'Suffix': 'foo'
+        }
+    }
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_website,
+        Bucket=bucket_name,
+        WebsiteConfiguration=website_config,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_put_bucket_website_cross_account_with_FULL_CONTROL_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl FULL CONTROL for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name,  GrantFullControl="id=" + alt_user_id
+    )
+    website_config = {
+        'IndexDocument': {
+            'Suffix': 'foo'
+        }
+    }
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_website,
+        Bucket=bucket_name,
+        WebsiteConfiguration=website_config,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+# DeleteBucketWebsite
+def test_delete_bucket_website_cross_account_with_READ_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantRead="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.delete_bucket_website, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_delete_bucket_website_cross_account_with_WRITE_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWrite="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.delete_bucket_website, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_delete_bucket_website_cross_account_with_READ_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantReadACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.delete_bucket_website, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_delete_bucket_website_cross_account_with_WRITE_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWriteACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.delete_bucket_website, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_delete_bucket_website_cross_account_with_FULL_CONTROL_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl FULL CONTROL for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name,  GrantFullControl="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.delete_bucket_website, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+# GetEncryptionConfiguration
+def test_get_bucket_encryption_cross_account_with_READ_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantRead="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_encryption, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_bucket_encryption_cross_account_with_WRITE_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWrite="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_encryption, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_bucket_encryption_cross_account_with_READ_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantReadACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_encryption, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_bucket_encryption_cross_account_with_WRITE_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWriteACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_encryption, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_bucket_encryption_cross_account_with_FULL_CONTROL_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl FULL CONTROL for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name,  GrantFullControl="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_encryption, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+# PutEncryptionConfiguration
+def test_put_bucket_encryption_cross_account_with_READ_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantRead="id=" + alt_user_id
+    )
+    server_side_encryption_conf = {
+        'Rules': [
+            {
+                'ApplyServerSideEncryptionByDefault': {
+                    'SSEAlgorithm': 'AES256'
+                }
+            },
+        ]
+    }
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_encryption,
+        Bucket=bucket_name,
+        ServerSideEncryptionConfiguration=server_side_encryption_conf,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_put_bucket_encryption_cross_account_with_WRITE_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWrite="id=" + alt_user_id
+    )
+    server_side_encryption_conf = {
+        'Rules': [
+            {
+                'ApplyServerSideEncryptionByDefault': {
+                    'SSEAlgorithm': 'AES256'
+                }
+            },
+        ]
+    }
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_encryption,
+        Bucket=bucket_name,
+        ServerSideEncryptionConfiguration=server_side_encryption_conf,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_put_bucket_encryption_cross_account_with_READ_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantReadACP="id=" + alt_user_id
+    )
+    server_side_encryption_conf = {
+        'Rules': [
+            {
+                'ApplyServerSideEncryptionByDefault': {
+                    'SSEAlgorithm': 'AES256'
+                }
+            },
+        ]
+    }
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_encryption,
+        Bucket=bucket_name,
+        ServerSideEncryptionConfiguration=server_side_encryption_conf,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_put_bucket_encryption_cross_account_with_WRITE_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWriteACP="id=" + alt_user_id
+    )
+    server_side_encryption_conf = {
+        'Rules': [
+            {
+                'ApplyServerSideEncryptionByDefault': {
+                    'SSEAlgorithm': 'AES256'
+                }
+            },
+        ]
+    }
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_encryption,
+        Bucket=bucket_name,
+        ServerSideEncryptionConfiguration=server_side_encryption_conf,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_put_bucket_encryption_cross_account_with_FULL_CONTROL_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl FULL CONTROL for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name,  GrantFullControl="id=" + alt_user_id
+    )
+    server_side_encryption_conf = {
+        'Rules': [
+            {
+                'ApplyServerSideEncryptionByDefault': {
+                    'SSEAlgorithm': 'AES256'
+                }
+            },
+        ]
+    }
+    e = assert_raises(
+        ClientError,
+        alt_client.put_bucket_encryption,
+        Bucket=bucket_name,
+        ServerSideEncryptionConfiguration=server_side_encryption_conf,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+# GetBucketLocation
+def test_get_bucket_location_cross_account_with_READ_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantRead="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_location, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_bucket_location_cross_account_with_WRITE_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWrite="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_location, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_bucket_location_cross_account_with_READ_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl READ ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantReadACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_location, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_bucket_location_cross_account_with_WRITE_ACP_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl WRITE ACP for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name, GrantWriteACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_location, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_bucket_location_cross_account_with_FULL_CONTROL_acl():
+    alt_client = get_alt_client()
+    bucket_name = get_new_bucket_name()
+    main_client = get_client()
+    main_client.create_bucket(Bucket=bucket_name)
+    alt_user_id = get_alt_user_id()
+    # put bucket acl FULL CONTROL for alt user
+    main_client.put_bucket_acl(
+        Bucket=bucket_name,  GrantFullControl="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_bucket_location, Bucket=bucket_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+# GetObject
+def test_get_object_cross_account_with_READ_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl READ for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantRead="id=" + alt_user_id
+    )
+    alt_client.get_object(Bucket=bucket_name, Key=object_name)
+
+def test_get_object_cross_account_with_WRITE_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl WRITE for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantWrite="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_object, Bucket=bucket_name, Key=object_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_object_cross_account_with_READ_ACP_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl READ ACP for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantReadACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_object, Bucket=bucket_name, Key=object_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_object_cross_account_with_WRITE_ACP_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl WRITE ACP for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantWriteACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError, alt_client.get_object, Bucket=bucket_name, Key=object_name
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_object_cross_account_with_FULL_CONTROL_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl FULL CONTROL for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantFullControl="id=" + alt_user_id,
+    )
+    alt_client.get_object(Bucket=bucket_name, Key=object_name)
+
+# GetObjectVersion
+def test_get_object_version_cross_account_with_READ_acl():
     main_client = get_client()
     bucket_name = get_new_bucket_name()
     main_client.create_bucket(Bucket=bucket_name)
@@ -17121,242 +18562,564 @@ def test_object_acl_cross_account():
     version_id = response["VersionId"]
     alt_client = get_alt_client()
     alt_user_id = get_alt_user_id()
+    # put object acl READ for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantRead="id=" + alt_user_id
+    )
+    alt_client.get_object(
+        Bucket=bucket_name, Key=object_name, VersionId=version_id
+    )
 
-    def _put_object_acl(acl):
-        if acl == "READ":
-            main_client.put_object_acl(
-                Bucket=bucket_name, Key=object_name, GrantRead="id=" + alt_user_id
-            )
-        elif acl == "WRITE":
-            main_client.put_object_acl(
-                Bucket=bucket_name, Key=object_name, GrantWrite="id=" + alt_user_id
-            )
-        elif acl == "READ_ACP":
-            main_client.put_object_acl(
-                Bucket=bucket_name, Key=object_name, GrantReadACP="id=" + alt_user_id
-            )
-        elif acl == "WRITE_ACP":
-            main_client.put_object_acl(
-                Bucket=bucket_name, Key=object_name, GrantWriteACP="id=" + alt_user_id
-            )
-        elif acl == "FULL_CONTROL":
-            main_client.put_object_acl(
-                Bucket=bucket_name,
-                Key=object_name,
-                GrantFullControl="id=" + alt_user_id,
-            )
+def test_get_object_version_cross_account_with_WRITE_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    main_client.put_bucket_versioning(
+        Bucket=bucket_name, VersioningConfiguration={"Status": "Enabled"}
+    )
+    response = main_client.put_object(Bucket=bucket_name, Key=object_name)
+    version_id = response["VersionId"]
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl WRITE for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantWrite="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError,
+        alt_client.get_object,
+        Bucket=bucket_name,
+        Key=object_name,
+        VersionId=version_id,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    # Create test_cases list
-    test_cases = []
+def test_get_object_version_cross_account_with_READ_ACP_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    main_client.put_bucket_versioning(
+        Bucket=bucket_name, VersioningConfiguration={"Status": "Enabled"}
+    )
+    response = main_client.put_object(Bucket=bucket_name, Key=object_name)
+    version_id = response["VersionId"]
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl READ ACP for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantReadACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError,
+        alt_client.get_object,
+        Bucket=bucket_name,
+        Key=object_name,
+        VersionId=version_id,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    # GetObject
-    def _check_get_object(expected_result):
-        if expected_result:
-            alt_client.get_object(Bucket=bucket_name, Key=object_name)
-        else:
-            e = assert_raises(
-                ClientError, alt_client.get_object, Bucket=bucket_name, Key=object_name
-            )
-            status = _get_status(e.response)
-            eq(status, 403)
+def test_get_object_version_cross_account_with_WRITE_ACP_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    main_client.put_bucket_versioning(
+        Bucket=bucket_name, VersioningConfiguration={"Status": "Enabled"}
+    )
+    response = main_client.put_object(Bucket=bucket_name, Key=object_name)
+    version_id = response["VersionId"]
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl WRITE ACP for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantWriteACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError,
+        alt_client.get_object,
+        Bucket=bucket_name,
+        Key=object_name,
+        VersionId=version_id,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    get_object_expected_result = {
-        "READ": True,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": True,
-    }
-    for acl, expected_result in get_object_expected_result.items():
-        test_cases.append(
-            (
-                "test_get_object_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_get_object,
-                expected_result,
-            )
-        )
+def test_get_object_version_cross_account_with_FULL_CONTROL_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    main_client.put_bucket_versioning(
+        Bucket=bucket_name, VersioningConfiguration={"Status": "Enabled"}
+    )
+    response = main_client.put_object(Bucket=bucket_name, Key=object_name)
+    version_id = response["VersionId"]
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl FULL CONTROL for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantFullControl="id=" + alt_user_id,
+    )
+    alt_client.get_object(
+        Bucket=bucket_name, Key=object_name, VersionId=version_id
+    )
 
-    # GetObjectVersion
-    def _check_get_object_version(expected_result):
-        if expected_result:
-            alt_client.get_object(
-                Bucket=bucket_name, Key=object_name, VersionId=version_id
-            )
-        else:
-            e = assert_raises(
-                ClientError,
-                alt_client.get_object,
-                Bucket=bucket_name,
-                Key=object_name,
-                VersionId=version_id,
-            )
-            status = _get_status(e.response)
-            eq(status, 403)
+# GetObjectAcl
+def test_get_object_acl_cross_account_with_READ_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl READ for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantRead="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError,
+        alt_client.get_object_acl,
+        Bucket=bucket_name,
+        Key=object_name,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    get_object_version_expected_result = {
-        "READ": True,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": True,
-    }
-    for acl, expected_result in get_object_version_expected_result.items():
-        test_cases.append(
-            (
-                "test_get_object_version_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_get_object_version,
-                expected_result,
-            )
-        )
+def test_get_object_acl_cross_account_with_WRITE_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl WRITE for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantWrite="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError,
+        alt_client.get_object_acl,
+        Bucket=bucket_name,
+        Key=object_name,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    # GetObjectAcl
-    def _check_get_object_acl(expected_result):
-        if expected_result:
-            alt_client.get_object_acl(Bucket=bucket_name, Key=object_name)
-        else:
-            e = assert_raises(
-                ClientError,
-                alt_client.get_object_acl,
-                Bucket=bucket_name,
-                Key=object_name,
-            )
-            status = _get_status(e.response)
-            eq(status, 403)
+def test_get_object_acl_cross_account_with_READ_ACP_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl READ ACP for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantReadACP="id=" + alt_user_id
+    )
+    alt_client.get_object_acl(Bucket=bucket_name, Key=object_name)
 
-    get_object_acl_expected_result = {
-        "READ": False,
-        "WRITE": False,
-        "READ_ACP": True,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": True,
-    }
-    for acl, expected_result in get_object_acl_expected_result.items():
-        test_cases.append(
-            (
-                "test_get_object_acl_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_get_object_acl,
-                expected_result,
-            )
-        )
+def test_get_object_acl_cross_account_with_WRITE_ACP_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl WRITE ACP for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantWriteACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError,
+        alt_client.get_object_acl,
+        Bucket=bucket_name,
+        Key=object_name,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    # PutObjectAcl
-    def _check_put_object_acl(expected_result):
-        alt_user_id = get_alt_user_id()
-        if expected_result:
-            alt_client.put_object_acl(
-                Bucket=bucket_name,
-                Key=object_name,
-                GrantFullControl="id=" + alt_user_id,
-            )
-        else:
-            e = assert_raises(
-                ClientError,
-                alt_client.put_object_acl,
-                Bucket=bucket_name,
-                Key=object_name,
-                GrantFullControl="id=" + alt_user_id,
-            )
-            status = _get_status(e.response)
-            eq(status, 403)
+def test_get_object_acl_cross_account_with_FULL_CONTROL_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl FULL CONTROL for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantFullControl="id=" + alt_user_id,
+    )
+    alt_client.get_object_acl(Bucket=bucket_name, Key=object_name)
 
-    put_object_acl_expected_result = {
-        "READ": False,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": True,
-        "FULL_CONTROL": True,
-    }
-    for acl, expected_result in put_object_acl_expected_result.items():
-        test_cases.append(
-            (
-                "test_put_object_acl_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_put_object_acl,
-                expected_result,
-            )
-        )
+# PutObjectAcl
+def test_put_object_acl_cross_account_with_READ_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl READ for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantRead="id=" + alt_user_id
+    )
+    alt_user_id = get_alt_user_id()
+    e = assert_raises(
+        ClientError,
+        alt_client.put_object_acl,
+        Bucket=bucket_name,
+        Key=object_name,
+        GrantFullControl="id=" + alt_user_id,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    # GetObjectVersionAcl
-    def _check_get_object_version_acl(expected_result):
-        if expected_result:
-            alt_client.get_object_acl(
-                Bucket=bucket_name, Key=object_name, VersionId=version_id
-            )
-        else:
-            e = assert_raises(
-                ClientError,
-                alt_client.get_object_acl,
-                Bucket=bucket_name,
-                Key=object_name,
-                VersionId=version_id,
-            )
-            status = _get_status(e.response)
-            eq(status, 403)
+def test_put_object_acl_cross_account_with_WRITE_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl WRITE for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantWrite="id=" + alt_user_id
+    )
+    alt_user_id = get_alt_user_id()
+    e = assert_raises(
+        ClientError,
+        alt_client.put_object_acl,
+        Bucket=bucket_name,
+        Key=object_name,
+        GrantFullControl="id=" + alt_user_id,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    get_object_version_acl_expected_result = {
-        "READ": False,
-        "WRITE": False,
-        "READ_ACP": True,
-        "WRITE_ACP": False,
-        "FULL_CONTROL": True,
-    }
-    for acl, expected_result in get_object_version_acl_expected_result.items():
-        test_cases.append(
-            (
-                "test_get_object_version_acl_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_get_object_version_acl,
-                expected_result,
-            )
-        )
+def test_put_object_acl_cross_account_with_READ_ACP_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl READ ACP for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantReadACP="id=" + alt_user_id
+    )
+    alt_user_id = get_alt_user_id()
+    e = assert_raises(
+        ClientError,
+        alt_client.put_object_acl,
+        Bucket=bucket_name,
+        Key=object_name,
+        GrantFullControl="id=" + alt_user_id,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-    # PutObjectVersionAcl
-    def _check_put_object_version_acl(expected_result):
-        alt_user_id = get_alt_user_id()
-        if expected_result:
-            alt_client.put_object_acl(
-                Bucket=bucket_name,
-                Key=object_name,
-                GrantFullControl="id=" + alt_user_id,
-            )
-        else:
-            e = assert_raises(
-                ClientError,
-                alt_client.put_object_acl,
-                Bucket=bucket_name,
-                Key=object_name,
-                GrantFullControl="id=" + alt_user_id,
-            )
-            status = _get_status(e.response)
-            eq(status, 403)
+def test_put_object_acl_cross_account_with_WRITE_ACP_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl WRITE ACP for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantWriteACP="id=" + alt_user_id
+    )
+    alt_user_id = get_alt_user_id()
+    alt_client.put_object_acl(
+        Bucket=bucket_name,
+        Key=object_name,
+        GrantFullControl="id=" + alt_user_id,
+    )
 
-    put_object_version_acl_expected_result = {
-        "READ": False,
-        "WRITE": False,
-        "READ_ACP": False,
-        "WRITE_ACP": True,
-        "FULL_CONTROL": True,
-    }
-    for acl, expected_result in put_object_version_acl_expected_result.items():
-        test_cases.append(
-            (
-                "test_put_object_version_acl_cross_account_with_" + acl + "_acl",
-                acl,
-                _check_put_object_version_acl,
-                expected_result,
-            )
-        )
+def test_put_object_acl_cross_account_with_FULL_CONTROL_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl FULL CONTROL for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantFullControl="id=" + alt_user_id,
+    )
+    alt_user_id = get_alt_user_id()
+    alt_client.put_object_acl(
+        Bucket=bucket_name,
+        Key=object_name,
+        GrantFullControl="id=" + alt_user_id,
+    )
 
-    # Run test cases
-    for description, acl, check_func, expected in test_cases:
+# GetObjectVersionAcl
+def test_get_object_version_acl_cross_account_with_READ_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    main_client.put_bucket_versioning(
+        Bucket=bucket_name, VersioningConfiguration={"Status": "Enabled"}
+    )
+    response = main_client.put_object(Bucket=bucket_name, Key=object_name)
+    version_id = response["VersionId"]
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl READ for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantRead="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError,
+        alt_client.get_object_acl,
+        Bucket=bucket_name,
+        Key=object_name,
+        VersionId=version_id,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-        def run():
-            _put_object_acl(acl)
-            check_func(expected)
+def test_get_object_version_acl_cross_account_with_WRITE_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    main_client.put_bucket_versioning(
+        Bucket=bucket_name, VersioningConfiguration={"Status": "Enabled"}
+    )
+    response = main_client.put_object(Bucket=bucket_name, Key=object_name)
+    version_id = response["VersionId"]
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl WRITE for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantWrite="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError,
+        alt_client.get_object_acl,
+        Bucket=bucket_name,
+        Key=object_name,
+        VersionId=version_id,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
 
-        run.description = description
-        test_object_acl_cross_account.__name__ = description
-        yield run
+def test_get_object_version_acl_cross_account_with_READ_ACP_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    main_client.put_bucket_versioning(
+        Bucket=bucket_name, VersioningConfiguration={"Status": "Enabled"}
+    )
+    response = main_client.put_object(Bucket=bucket_name, Key=object_name)
+    version_id = response["VersionId"]
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl READ ACP for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantReadACP="id=" + alt_user_id
+    )
+    alt_client.get_object_acl(
+        Bucket=bucket_name, Key=object_name, VersionId=version_id
+    )
+
+def test_get_object_version_acl_cross_account_with_WRITE_ACP_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    main_client.put_bucket_versioning(
+        Bucket=bucket_name, VersioningConfiguration={"Status": "Enabled"}
+    )
+    response = main_client.put_object(Bucket=bucket_name, Key=object_name)
+    version_id = response["VersionId"]
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl WRITE ACP for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantWriteACP="id=" + alt_user_id
+    )
+    e = assert_raises(
+        ClientError,
+        alt_client.get_object_acl,
+        Bucket=bucket_name,
+        Key=object_name,
+        VersionId=version_id,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_get_object_version_acl_cross_account_with_FULL_CONTROL_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    main_client.put_bucket_versioning(
+        Bucket=bucket_name, VersioningConfiguration={"Status": "Enabled"}
+    )
+    response = main_client.put_object(Bucket=bucket_name, Key=object_name)
+    version_id = response["VersionId"]
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl FULL CONTROL for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantFullControl="id=" + alt_user_id,
+    )
+    alt_client.get_object_acl(
+        Bucket=bucket_name, Key=object_name, VersionId=version_id
+    )
+
+# PutObjectVersionAcl
+def test_put_object_version_acl_cross_account_with_READ_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    main_client.put_bucket_versioning(
+        Bucket=bucket_name, VersioningConfiguration={"Status": "Enabled"}
+    )
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl READ for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantRead="id=" + alt_user_id
+    )
+    alt_user_id = get_alt_user_id()
+    e = assert_raises(
+        ClientError,
+        alt_client.put_object_acl,
+        Bucket=bucket_name,
+        Key=object_name,
+        GrantFullControl="id=" + alt_user_id,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_put_object_version_acl_cross_account_with_WRITE_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    main_client.put_bucket_versioning(
+        Bucket=bucket_name, VersioningConfiguration={"Status": "Enabled"}
+    )
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl WRITE for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantWrite="id=" + alt_user_id
+    )
+    alt_user_id = get_alt_user_id()
+    e = assert_raises(
+        ClientError,
+        alt_client.put_object_acl,
+        Bucket=bucket_name,
+        Key=object_name,
+        GrantFullControl="id=" + alt_user_id,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_put_object_version_acl_cross_account_with_READ_ACP_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    main_client.put_bucket_versioning(
+        Bucket=bucket_name, VersioningConfiguration={"Status": "Enabled"}
+    )
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl READ ACP for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantReadACP="id=" + alt_user_id
+    )
+    alt_user_id = get_alt_user_id()
+    e = assert_raises(
+        ClientError,
+        alt_client.put_object_acl,
+        Bucket=bucket_name,
+        Key=object_name,
+        GrantFullControl="id=" + alt_user_id,
+    )
+    status = _get_status(e.response)
+    eq(status, 403)
+
+def test_put_object_version_acl_cross_account_with_WRITE_ACP_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    main_client.put_bucket_versioning(
+        Bucket=bucket_name, VersioningConfiguration={"Status": "Enabled"}
+    )
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl WRITE ACP for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantWriteACP="id=" + alt_user_id
+    )
+    alt_user_id = get_alt_user_id()
+    alt_client.put_object_acl(
+        Bucket=bucket_name,
+        Key=object_name,
+        GrantFullControl="id=" + alt_user_id,
+    )
+
+def test_put_object_version_acl_cross_account_with_FULL_CONTROL_acl():
+    main_client = get_client()
+    bucket_name = get_new_bucket_name()
+    main_client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    main_client.put_bucket_versioning(
+        Bucket=bucket_name, VersioningConfiguration={"Status": "Enabled"}
+    )
+    main_client.put_object(Bucket=bucket_name, Key=object_name)
+    alt_client = get_alt_client()
+    alt_user_id = get_alt_user_id()
+    # put object acl FULL CONTROL for alt user
+    main_client.put_object_acl(
+        Bucket=bucket_name, Key=object_name, GrantFullControl="id=" + alt_user_id,
+    )
+    alt_user_id = get_alt_user_id()
+    alt_client.put_object_acl(
+        Bucket=bucket_name,
+        Key=object_name,
+        GrantFullControl="id=" + alt_user_id,
+    )
