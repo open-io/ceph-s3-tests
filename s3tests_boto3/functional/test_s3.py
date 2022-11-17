@@ -263,7 +263,7 @@ def test_bucket_listv2_encoding_basic():
 
     prefixes = _get_prefixes(response)
     eq(len(prefixes), 3)
-    eq(prefixes, ['foo%2B1/', 'foo/', 'quux%20ab/'])
+    eq(prefixes, ['foo%2B1/', 'foo/', 'quux+ab/'])
 
 @attr(resource='bucket')
 @attr(method='get')
@@ -282,7 +282,7 @@ def test_bucket_list_encoding_basic():
 
     prefixes = _get_prefixes(response)
     eq(len(prefixes), 3)
-    eq(prefixes, ['foo%2B1/', 'foo/', 'quux%20ab/'])
+    eq(prefixes, ['foo%2B1/', 'foo/', 'quux+ab/'])
 
 
 def validate_bucket_list(bucket_name, prefix, delimiter, marker, max_keys,
