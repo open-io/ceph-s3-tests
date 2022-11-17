@@ -231,7 +231,7 @@ def test_bucket_listv2_encoding_basic():
 
     prefixes = _get_prefixes(response)
     assert len(prefixes) == 3
-    assert prefixes == ['foo%2B1/', 'foo/', 'quux%20ab/']
+    assert prefixes == ['foo%2B1/', 'foo/', 'quux+ab/']
 
 def test_bucket_list_encoding_basic():
     bucket_name = _create_objects(keys=['foo+1/bar', 'foo/bar/xyzzy', 'quux ab/thud', 'asdf+b'])
@@ -244,7 +244,7 @@ def test_bucket_list_encoding_basic():
 
     prefixes = _get_prefixes(response)
     assert len(prefixes) == 3
-    assert prefixes == ['foo%2B1/', 'foo/', 'quux%20ab/']
+    assert prefixes == ['foo%2B1/', 'foo/', 'quux+ab/']
 
 
 def validate_bucket_list(bucket_name, prefix, delimiter, marker, max_keys,
