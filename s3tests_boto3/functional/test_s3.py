@@ -5777,7 +5777,7 @@ def test_logging_toggle():
 
     client.put_bucket_logging(Bucket=bucket_name, BucketLoggingStatus=status)
     client.get_bucket_logging(Bucket=bucket_name)
-    status = {'LoggingEnabled': {}}
+    status = {}
     client.put_bucket_logging(Bucket=bucket_name, BucketLoggingStatus=status)
     # NOTE: this does not actually test whether or not logging works
 
