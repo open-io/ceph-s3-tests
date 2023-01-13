@@ -1,0 +1,34 @@
+#!/usr/bin/make -f
+
+DESTDIR=$(CURDIR)/debian/${PACKAGE}
+PREFIX=/opt/${PACKAGE}
+
+export DH_VIRTUALENV_INSTALL_ROOT=/opt/
+PYTHON_PATH=$(shell readlink -f /opt/python-*)
+
+export CFLAGS=-I${PYTHON_PATH}/include/
+export LIBRARY_PATH=${PYTHON_PATH}/lib
+export LD_LIBRARY_PATH=${LIBRARY_PATH}
+
+%:
+	dh $@ --with python-virtualenv
+
+override_dh_virtualenv:
+	echo "Name: ceph-s3-tests" > PKG-INFO
+	dh_virtualenv \
+	  --python ${PYTHON_PATH}/bin/python \
+	  --install-suffix ${PACKAGE} \
+	  --use-system-packages \
+	  --builtin-venv \
+	  --upgrade-pip \
+	  --index-url https://${PYPI_SNAPSHOT}-pypi.snap.mirrors.ovh.net/simple/
+	find .
+	# fix shebangs
+	find $(DESTDIR)$(PREFIX)/bin/ -type f -exec sed -i "s@${DESTDIR}@@" {} \;
+
+.PHONY: override_dh_strip override_dh_shlibdeps
+
+# remove postinst from dh-virtualenv as it's buggy and useless
+override_dh_installdeb:
+	dh_installdeb
+	rm -f $(DESTDIR)/DEBIAN/postinst

@@ -1,0 +1,28 @@
+Source: ${PACKAGE}
+Section: net
+Priority: optional
+Maintainer: PU ObjectStorage <pu.objectstorage@internal.ovh.net>
+Build-Depends:
+  debhelper (>= 9),
+  python-3.7.10-ovh127,
+  dh-virtualenv (>= 1.0),
+Build-Depends-Indep:
+ git,
+Standards-Version: 4.5.0
+Homepage: https://github.com/ceph/s3-tests
+Testsuite: autopkgtest-pkg-python
+Rules-Requires-Root: no
+
+Package: ${PACKAGE}
+Architecture: any
+Section: python
+Pre-Depends:
+  dpkg (>= 1.16.1),
+  python-3.7.10-ovh127,
+  ${misc:Pre-Depends}
+Depends:
+ ${misc:Depends},
+ ${shlibs:Depends},
+Description: This is a set of unofficial Amazon AWS S3 compatibility tests,
+ that can be useful to people implementing software that exposes an S3-like API.
+ The tests use the Boto2 and Boto3 libraries.
