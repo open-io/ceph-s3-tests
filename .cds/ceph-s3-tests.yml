@@ -17,6 +17,17 @@ workflow:
           operator: eq
           value: "true"
 
+  build:
+    pipeline: ceph-s3-tests-build
+    application: ceph-s3-tests
+    depends_on:
+      - root
+    conditions:
+      check:
+        - variable: cds.triggered_by.username
+          operator: ne
+          value: "cds.scheduler"
+
   ceph-s3-tests-infra2020:
     pipeline: ceph-s3-tests
     application: ceph-s3-tests
@@ -25,6 +36,9 @@ workflow:
     environment: s3-tests-infra2020
     conditions:
       check:
+        - variable: cds.triggered_by.username
+          operator: ne
+          value: "cds.scheduler"
         - variable: infra_id
           operator: eq
           value: "2020"
@@ -39,6 +53,9 @@ workflow:
     environment: s3-tests-infra3000
     conditions:
       check:
+        - variable: cds.triggered_by.username
+          operator: ne
+          value: "cds.scheduler"
         - variable: infra_id
           operator: eq
           value: "3000"
@@ -53,6 +70,9 @@ workflow:
     environment: s3-tests-infra3001
     conditions:
       check:
+        - variable: cds.triggered_by.username
+          operator: ne
+          value: "cds.scheduler"
         - variable: infra_id
           operator: eq
           value: "3001"
@@ -77,3 +97,13 @@ workflow:
     optional: true
 
 retention_policy: "if(cds_triggered_by_username == 'cds.scheduler') then\n  return run_days_before < 1\nend\nif(has_git_branch == \"true\") then\n  if(git_branch_exist == \"true\") then    \n    return run_days_before < 365\n  else\n    return run_days_before < 2\n  end\nelse\n  return run_days_before < 365\nend"
+
+metadata:
+  default_tags: git.branch,git.author,git.tag
+
+notifications:
+- type: vcs
+  settings:
+    on_success: always
+    template:
+      disable_comment: true
