@@ -96,6 +96,91 @@ workflow:
     one_at_a_time: true
     optional: true
 
+  ceph-s3-tests-infra4001:
+    pipeline: ceph-s3-tests
+    application: ceph-s3-tests
+    depends_on:
+      - root
+    environment: s3-tests-infra4001
+    conditions:
+      check:
+        - variable: cds.triggered_by.username
+          operator: ne
+          value: "cds.scheduler"
+        - variable: infra_id
+          operator: eq
+          value: "4001"
+    one_at_a_time: true
+    optional: true
+
+  ceph-s3-tests-infra4002:
+    pipeline: ceph-s3-tests
+    application: ceph-s3-tests
+    depends_on:
+      - root
+    environment: s3-tests-infra4002
+    conditions:
+      check:
+        - variable: cds.triggered_by.username
+          operator: ne
+          value: "cds.scheduler"
+        - variable: infra_id
+          operator: eq
+          value: "4002"
+    one_at_a_time: true
+    optional: true
+
+  ceph-s3-tests-infra4003:
+    pipeline: ceph-s3-tests
+    application: ceph-s3-tests
+    depends_on:
+      - root
+    environment: s3-tests-infra4003
+    conditions:
+      check:
+        - variable: cds.triggered_by.username
+          operator: ne
+          value: "cds.scheduler"
+        - variable: infra_id
+          operator: eq
+          value: "4003"
+    one_at_a_time: true
+    optional: true
+
+  ceph-s3-tests-infra4100:
+    pipeline: ceph-s3-tests
+    application: ceph-s3-tests
+    depends_on:
+      - root
+    environment: s3-tests-infra4100
+    conditions:
+      check:
+        - variable: cds.triggered_by.username
+          operator: ne
+          value: "cds.scheduler"
+        - variable: infra_id
+          operator: eq
+          value: "4100"
+    one_at_a_time: true
+    optional: true
+
+  ceph-s3-tests-infra400:
+    pipeline: ceph-s3-tests
+    application: ceph-s3-tests
+    depends_on:
+      - root
+    environment: s3-tests-infra400
+    conditions:
+      check:
+        - variable: cds.triggered_by.username
+          operator: ne
+          value: "cds.scheduler"
+        - variable: infra_id
+          operator: eq
+          value: "400"
+    one_at_a_time: true
+    optional: true
+
 retention_policy: "if(cds_triggered_by_username == 'cds.scheduler') then\n  return run_days_before < 1\nend\nif(has_git_branch == \"true\") then\n  if(git_branch_exist == \"true\") then    \n    return run_days_before < 365\n  else\n    return run_days_before < 2\n  end\nelse\n  return run_days_before < 365\nend"
 
 metadata:
