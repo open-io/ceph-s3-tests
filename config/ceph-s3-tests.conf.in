@@ -1,0 +1,50 @@
+[DEFAULT]
+host = ${CDS_ENV_S3_SERVER}
+port = ${CDS_ENV_S3_PORT}
+is_secure = True
+ssl_verify = True
+
+[fixtures]
+bucket prefix = s3-tests-{random}-
+
+[s3 main]
+display_name = ${CDS_ENV_U0_PROJECTNAME}:${CDS_ENV_U0_USERNAME}
+user_id = ${CDS_ENV_U0_PROJECTNAME}:${CDS_ENV_U0_USERNAME}
+email = tester@ceph.com
+api_name = default
+access_key = ${CDS_ENV_U0_ACCESS}
+secret_key = ${CDS_ENV_U0_SECRET}
+
+[s3 alt]
+display_name = ${CDS_ENV_U0_PROJECTNAME}:${CDS_ENV_U1_USERNAME}
+email = john.doe@example.com
+user_id = ${CDS_ENV_U0_PROJECTNAME}:${CDS_ENV_U1_USERNAME}
+access_key = ${CDS_ENV_U1_ACCESS}
+secret_key = ${CDS_ENV_U1_SECRET}
+
+[s3 tenant]
+display_name = ${CDS_ENV_U0_PROJECTNAME}:${CDS_ENV_U0_USERNAME}
+user_id = ${CDS_ENV_U0_PROJECTNAME}:${CDS_ENV_U0_USERNAME}
+access_key = ${CDS_ENV_U0_ACCESS}
+secret_key = ${CDS_ENV_U0_SECRET}
+tenant = ${CDS_ENV_U0_PROJECTNAME}
+email = tenanteduser@example.com
+
+[iam]
+display_name = unconfigured
+access_key = unconfigured
+secret_key = unconfigured
+user_id = unconfigured
+email = unconfigured@example.com
+
+[iam root]
+access_key = unconfigured
+secret_key = unconfigured
+user_id = unconfigured
+email = unconfigured@example.com
+
+[iam alt root]
+access_key = unconfigured
+secret_key = unconfigured
+user_id = unconfigured
+email = unconfigured@example.com
