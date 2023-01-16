@@ -27,6 +27,9 @@ workflow:
         - variable: cds.triggered_by.username
           operator: ne
           value: "cds.scheduler"
+        - variable: infra_id
+          operator: eq
+          value: ""
 
   ceph-s3-tests-infra2020:
     pipeline: ceph-s3-tests
