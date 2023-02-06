@@ -16348,3 +16348,96 @@ def test_get_object_attributes():
     assert response['ETag'] == etag
     assert response['StorageClass'] == 'STANDARD'
     assert 'ObjectParts' not in response
+
+def _get_endpoint_website(bucket):
+    return 'http://' + bucket + '.' + get_config_host_website() + ':' + str(get_config_port_website())
+
+@pytest.mark.s3website
+def test_get_object_website_with_AllUsers_FullControl():
+    bucket_name = get_new_bucket_name()
+    client = get_client()
+    client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    client.put_object(Bucket=bucket_name, Key=object_name)
+    website_config = {
+        'IndexDocument': {
+            'Suffix': 'foo'
+        }
+    }
+    client.put_bucket_website(Bucket=bucket_name, WebsiteConfiguration=website_config)
+    client.put_object_acl(Bucket=bucket_name, Key=object_name,
+        GrantFullControl='uri=http://acs.amazonaws.com/groups/global/AllUsers')
+    r = requests.get("http://" + bucket_name + ".s3-website.localhost:5000/", allow_redirects=False)
+    assert r.status_code == 200
+
+@pytest.mark.s3website
+def test_get_object_website_with_AllUsers_Read():
+    bucket_name = get_new_bucket_name()
+    client = get_client()
+    client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    client.put_object(Bucket=bucket_name, Key=object_name)
+    website_config = {
+        'IndexDocument': {
+            'Suffix': 'foo'
+        }
+    }
+    client.put_bucket_website(Bucket=bucket_name, WebsiteConfiguration=website_config)
+    client.put_object_acl(Bucket=bucket_name, Key=object_name,
+        GrantRead='uri=http://acs.amazonaws.com/groups/global/AllUsers')
+    r = requests.get("http://" + bucket_name + ".s3-website.localhost:5000/", allow_redirects=False)
+    assert r.status_code == 200
+
+@pytest.mark.s3website
+def test_get_object_website_with_AllUsers_Write():
+    bucket_name = get_new_bucket_name()
+    client = get_client()
+    client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    client.put_object(Bucket=bucket_name, Key=object_name)
+    website_config = {
+        'IndexDocument': {
+            'Suffix': 'foo'
+        }
+    }
+    client.put_bucket_website(Bucket=bucket_name, WebsiteConfiguration=website_config)
+    client.put_object_acl(Bucket=bucket_name, Key=object_name,
+        GrantWrite='uri=http://acs.amazonaws.com/groups/global/AllUsers')
+    r = requests.get("http://" + bucket_name + ".s3-website.localhost:5000/", allow_redirects=False)
+    assert r.status_code == 403
+
+@pytest.mark.s3website
+def test_get_object_website_with_AllUsers_Read_ACP():
+    bucket_name = get_new_bucket_name()
+    client = get_client()
+    client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    client.put_object(Bucket=bucket_name, Key=object_name)
+    website_config = {
+        'IndexDocument': {
+            'Suffix': 'foo'
+        }
+    }
+    client.put_bucket_website(Bucket=bucket_name, WebsiteConfiguration=website_config)
+    client.put_object_acl(Bucket=bucket_name, Key=object_name,
+        GrantReadACP='uri=http://acs.amazonaws.com/groups/global/AllUsers')
+    r = requests.get("http://" + bucket_name + ".s3-website.localhost:5000/", allow_redirects=False)
+    assert r.status_code == 403
+
+@pytest.mark.s3website
+def test_get_object_website_with_AllUsers_WriteACP():
+    bucket_name = get_new_bucket_name()
+    client = get_client()
+    client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    client.put_object(Bucket=bucket_name, Key=object_name)
+    website_config = {
+        'IndexDocument': {
+            'Suffix': 'foo'
+        }
+    }
+    client.put_bucket_website(Bucket=bucket_name, WebsiteConfiguration=website_config)
+    client.put_object_acl(Bucket=bucket_name, Key=object_name,
+        GrantWriteACP='uri=http://acs.amazonaws.com/groups/global/AllUsers')
+    r = requests.get("http://" + bucket_name + ".s3-website.localhost:5000/", allow_redirects=False)
+    assert r.status_code == 403
