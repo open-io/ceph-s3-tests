@@ -14996,3 +14996,113 @@ def test_sse_s3_encrypted_upload_1mb():
 @attr('fails_on_dbstore')
 def test_sse_s3_encrypted_upload_8mb():
     _test_sse_s3_encrypted_upload(8*1024*1024)
+
+@attr(resource='object')
+@attr(method='get')
+@attr(operation='Test get website when object ACL is FULL_CONTROL for AllUsers')
+@attr(assertion='success')
+@attr('website')
+def test_get_object_website_with_AllUsers_FullControl():
+    bucket_name = get_new_bucket_name()
+    client = get_client()
+    client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    client.put_object(Bucket=bucket_name, Key=object_name)
+    website_config = {
+        'IndexDocument': {
+            'Suffix': 'foo'
+        }
+    }
+    client.put_bucket_website(Bucket=bucket_name, WebsiteConfiguration=website_config)
+    client.put_object_acl(Bucket=bucket_name, Key=object_name,
+        GrantFullControl='uri=http://acs.amazonaws.com/groups/global/AllUsers')
+    r = requests.get("http://" + bucket_name + ".s3-website.localhost:5000/", allow_redirects=False)
+    eq(r.status_code, 200)
+
+@attr(resource='object')
+@attr(method='get')
+@attr(operation='Test get website when object ACL is READ for AllUsers')
+@attr(assertion='success')
+@attr('website')
+def test_get_object_website_with_AllUsers_Read():
+    bucket_name = get_new_bucket_name()
+    client = get_client()
+    client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    client.put_object(Bucket=bucket_name, Key=object_name)
+    website_config = {
+        'IndexDocument': {
+            'Suffix': 'foo'
+        }
+    }
+    client.put_bucket_website(Bucket=bucket_name, WebsiteConfiguration=website_config)
+    client.put_object_acl(Bucket=bucket_name, Key=object_name,
+        GrantRead='uri=http://acs.amazonaws.com/groups/global/AllUsers')
+    r = requests.get("http://" + bucket_name + ".s3-website.localhost:5000/", allow_redirects=False)
+    eq(r.status_code, 200)
+
+@attr(resource='object')
+@attr(method='get')
+@attr(operation='Test get website when object ACL is WRITE for AllUsers')
+@attr(assertion='fails')
+@attr('website')
+def test_get_object_website_with_AllUsers_Write():
+    bucket_name = get_new_bucket_name()
+    client = get_client()
+    client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    client.put_object(Bucket=bucket_name, Key=object_name)
+    website_config = {
+        'IndexDocument': {
+            'Suffix': 'foo'
+        }
+    }
+    client.put_bucket_website(Bucket=bucket_name, WebsiteConfiguration=website_config)
+    client.put_object_acl(Bucket=bucket_name, Key=object_name,
+        GrantWrite='uri=http://acs.amazonaws.com/groups/global/AllUsers')
+    r = requests.get("http://" + bucket_name + ".s3-website.localhost:5000/", allow_redirects=False)
+    eq(r.status_code, 403)
+
+@attr(resource='object')
+@attr(method='get')
+@attr(operation='Test get website when object ACL is READ_ACP for AllUsers')
+@attr(assertion='fails')
+@attr('website')
+def test_get_object_website_with_AllUsers_Read_ACP():
+    bucket_name = get_new_bucket_name()
+    client = get_client()
+    client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    client.put_object(Bucket=bucket_name, Key=object_name)
+    website_config = {
+        'IndexDocument': {
+            'Suffix': 'foo'
+        }
+    }
+    client.put_bucket_website(Bucket=bucket_name, WebsiteConfiguration=website_config)
+    client.put_object_acl(Bucket=bucket_name, Key=object_name,
+        GrantReadACP='uri=http://acs.amazonaws.com/groups/global/AllUsers')
+    r = requests.get("http://" + bucket_name + ".s3-website.localhost:5000/", allow_redirects=False)
+    eq(r.status_code, 403)
+
+@attr(resource='object')
+@attr(method='get')
+@attr(operation='Test get website when object ACL is WRITE_ACP for AllUsers')
+@attr(assertion='fails')
+@attr('website')
+def test_get_object_website_with_AllUsers_WriteACP():
+    bucket_name = get_new_bucket_name()
+    client = get_client()
+    client.create_bucket(Bucket=bucket_name)
+    object_name = "foo"
+    client.put_object(Bucket=bucket_name, Key=object_name)
+    website_config = {
+        'IndexDocument': {
+            'Suffix': 'foo'
+        }
+    }
+    client.put_bucket_website(Bucket=bucket_name, WebsiteConfiguration=website_config)
+    client.put_object_acl(Bucket=bucket_name, Key=object_name,
+        GrantWriteACP='uri=http://acs.amazonaws.com/groups/global/AllUsers')
+    r = requests.get("http://" + bucket_name + ".s3-website.localhost:5000/", allow_redirects=False)
+    eq(r.status_code, 403)
