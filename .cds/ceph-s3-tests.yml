@@ -187,7 +187,7 @@ workflow:
 retention_policy: "if(cds_triggered_by_username == 'cds.scheduler') then\n  return run_days_before < 1\nend\nif(has_git_branch == \"true\") then\n  if(git_branch_exist == \"true\") then    \n    return run_days_before < 365\n  else\n    return run_days_before < 2\n  end\nelse\n  return run_days_before < 365\nend"
 
 metadata:
-  default_tags: git.branch,git.author,git.tag
+  default_tags: git.branch,git.author,git.tag,infra_id
 
 notifications:
 - type: vcs
