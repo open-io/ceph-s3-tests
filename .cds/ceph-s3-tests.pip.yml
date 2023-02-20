@@ -74,19 +74,49 @@ jobs:
           python clean-all-buckets.py "{{.cds.build.u1_username}}" "https://{{.cds.build.s3_server}}:{{.cds.build.s3_port}}"
 
       - name: Analyze tests results
-        optional: true
         script:
           - . virtualenv/bin/activate
           - ./s3compat/bin/get_ceph_test_attributes.py
           - ./s3compat/bin/report.py -kf "known-failures/{{.infra_id}}.yaml" --detailed s3compat/output/ceph-s3.out.yaml "tests_report.xml" | tee tests_report.txt
+          - env
+          - ./results_to_metrics <tests_report.txt >tests_report.openmetrics
 
       - name: Save tests report
-        optional: true
         script:
-          - "worker upload --tag='{{.cds.version}}' 'tests_report.xml' 'tests_report.txt'"
-          - "[ -f debug.log ] && worker upload --tag='{{.cds.version}}' 'debug.log'"
+          - "worker upload --tag='{{.cds.version}}' tests_report.*"
+          - "[ -f debug.log ] && worker upload --tag='{{.cds.version}}' debug.log"
 
-      - optional: true
+      - name: Publish results on S3 public cloud
+        script: |+
+          #!/bin/bash
+          . virtualenv/bin/activate
+          pip install --upgrade awscli awscli-plugin-endpoint
+          cd {{.cds.workspace}}
+          mkdir -p "$HOME/.aws"
+          cat <<EOF >>"$HOME/.aws/credentials"
+          [kpi]
+          aws_access_key_id={{.cds.proj.kpi_s3_access_key}}
+          aws_secret_access_key={{.cds.proj.kpi_s3_access_secret}}
+          region=gra
+          EOF
+          cat <<EOF >>"$HOME/.aws/config"
+          [plugins]
+          endpoint = awscli_plugin_endpoint
+          [profile kpi]
+          s3 =
+              endpoint_url = {{.cds.proj.kpi_s3_endpoint}}
+              signature_version = s3v4
+              addressing_style = virtual
+              multipart_threshold = 100MB
+          s3api =
+              endpoint_url = {{.cds.proj.kpi_s3_endpoint}}
+          EOF
+
+          aws --profile kpi s3 cp tests_report.openmetrics s3://{{.cds.proj.kpi_s3_bucket}}/{{.cds.application}}/{{.cds.env.infra_id}}/results.$(date +%Y%d%m-%H%M).openmetrics
+          aws --profile kpi s3 cp tests_report.openmetrics s3://{{.cds.proj.kpi_s3_bucket}}/{{.cds.application}}/results.{{.cds.env.infra_id}}.openmetrics
+
+      - name: jUnitReport
+        optional: true
         always_executed: true
         jUnitReport: '{{.cds.workspace}}/tests_report.xml'
 
