@@ -39,9 +39,6 @@ workflow:
     environment: s3-tests-infra2020
     conditions:
       check:
-        - variable: cds.triggered_by.username
-          operator: ne
-          value: "cds.scheduler"
         - variable: infra_id
           operator: eq
           value: "2020"
@@ -56,9 +53,6 @@ workflow:
     environment: s3-tests-infra3000
     conditions:
       check:
-        - variable: cds.triggered_by.username
-          operator: ne
-          value: "cds.scheduler"
         - variable: infra_id
           operator: eq
           value: "3000"
@@ -73,9 +67,6 @@ workflow:
     environment: s3-tests-infra3001
     conditions:
       check:
-        - variable: cds.triggered_by.username
-          operator: ne
-          value: "cds.scheduler"
         - variable: infra_id
           operator: eq
           value: "3001"
@@ -90,9 +81,6 @@ workflow:
     environment: s3-tests-infra4000
     conditions:
       check:
-        - variable: cds.triggered_by.username
-          operator: ne
-          value: "cds.scheduler"
         - variable: infra_id
           operator: eq
           value: "4000"
@@ -107,9 +95,6 @@ workflow:
     environment: s3-tests-infra4001
     conditions:
       check:
-        - variable: cds.triggered_by.username
-          operator: ne
-          value: "cds.scheduler"
         - variable: infra_id
           operator: eq
           value: "4001"
@@ -124,9 +109,6 @@ workflow:
     environment: s3-tests-infra4002
     conditions:
       check:
-        - variable: cds.triggered_by.username
-          operator: ne
-          value: "cds.scheduler"
         - variable: infra_id
           operator: eq
           value: "4002"
@@ -141,9 +123,6 @@ workflow:
     environment: s3-tests-infra4003
     conditions:
       check:
-        - variable: cds.triggered_by.username
-          operator: ne
-          value: "cds.scheduler"
         - variable: infra_id
           operator: eq
           value: "4003"
@@ -158,9 +137,6 @@ workflow:
     environment: s3-tests-infra4100
     conditions:
       check:
-        - variable: cds.triggered_by.username
-          operator: ne
-          value: "cds.scheduler"
         - variable: infra_id
           operator: eq
           value: "4100"
@@ -175,9 +151,6 @@ workflow:
     environment: s3-tests-infra400
     conditions:
       check:
-        - variable: cds.triggered_by.username
-          operator: ne
-          value: "cds.scheduler"
         - variable: infra_id
           operator: eq
           value: "400"
@@ -195,3 +168,79 @@ notifications:
     on_success: always
     template:
       disable_comment: true
+
+# run tests on all infra twice a day
+hooks:
+  root:
+
+    - type: Scheduler
+      name: Periodic tests on infra 3000
+      config:
+        cron: "3 0,12 * * *"
+        timezone: UTC
+      payload:
+        infra_id: 3000
+
+    - type: Scheduler
+      name: Periodic tests on infra 3001
+      config:
+        cron: "2 1,13 * * *"
+        timezone: UTC
+      paylod:
+        infra_id: 3001
+
+#    - type: Scheduler
+#      name: Periodic tests on infra 3002
+#      config:
+#        cron: "7 2,14 * * *"
+#        timezone: UTC
+#      paylod:
+#        infra_id: 3002
+
+    - type: Scheduler
+      name: Periodic tests on infra 4000
+      config:
+        cron: "9 3,15 * * *"
+        timezone: UTC
+      paylod:
+        infra_id: 4000
+
+    - type: Scheduler
+      name: Periodic tests on infra 4001
+      config:
+        cron: "11 4,16 * * *"
+        timezone: UTC
+      paylod:
+        infra_id: 4001
+
+    - type: Scheduler
+      name: Periodic tests on infra 4002
+      config:
+        cron: "13 5,17 * * *"
+        timezone: UTC
+      paylod:
+        infra_id: 4002
+
+    - type: Scheduler
+      name: Periodic tests on infra 4003
+      config:
+        cron: "15 6,18 * * *"
+        timezone: UTC
+      paylod:
+        infra_id: 4003
+
+    - type: Scheduler
+      name: Periodic tests on infra 4100
+      config:
+        cron: "17 7,19 * * *"
+        timezone: UTC
+      paylod:
+        infra_id: 4100
+
+    - type: Scheduler
+      name: Periodic tests on infra 400
+      config:
+        cron: "19 8,20 * * *"
+        timezone: UTC
+      paylod:
+        infra_id: 400
