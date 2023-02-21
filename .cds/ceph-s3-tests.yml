@@ -186,7 +186,7 @@ hooks:
       config:
         cron: "2 1,13 * * *"
         timezone: UTC
-      paylod:
+      payload:
         infra_id: 3001
 
 #    - type: Scheduler
@@ -194,7 +194,7 @@ hooks:
 #      config:
 #        cron: "7 2,14 * * *"
 #        timezone: UTC
-#      paylod:
+#      payload:
 #        infra_id: 3002
 
     - type: Scheduler
@@ -202,7 +202,7 @@ hooks:
       config:
         cron: "9 3,15 * * *"
         timezone: UTC
-      paylod:
+      payload:
         infra_id: 4000
 
     - type: Scheduler
@@ -210,7 +210,7 @@ hooks:
       config:
         cron: "11 4,16 * * *"
         timezone: UTC
-      paylod:
+      payload:
         infra_id: 4001
 
     - type: Scheduler
@@ -218,7 +218,7 @@ hooks:
       config:
         cron: "13 5,17 * * *"
         timezone: UTC
-      paylod:
+      payload:
         infra_id: 4002
 
     - type: Scheduler
@@ -226,7 +226,7 @@ hooks:
       config:
         cron: "15 6,18 * * *"
         timezone: UTC
-      paylod:
+      payload:
         infra_id: 4003
 
     - type: Scheduler
@@ -234,7 +234,7 @@ hooks:
       config:
         cron: "17 7,19 * * *"
         timezone: UTC
-      paylod:
+      payload:
         infra_id: 4100
 
     - type: Scheduler
@@ -242,5 +242,5 @@ hooks:
       config:
         cron: "19 8,20 * * *"
         timezone: UTC
-      paylod:
+      payload:
         infra_id: 400
