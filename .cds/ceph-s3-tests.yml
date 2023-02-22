@@ -178,60 +178,60 @@ hooks:
       config:
         cron: "3 0,12 * * *"
         timezone: UTC
-      payload: '{"infra_id": "3000"}'
+        payload: '{"infra_id": "3000"}'
 
     - type: Scheduler
       name: Periodic tests on infra 3001
       config:
         cron: "2 1,13 * * *"
         timezone: UTC
-      payload: '{"infra_id": "3001"}'
+        payload: '{"infra_id": "3001"}'
 
 #    - type: Scheduler
 #      name: Periodic tests on infra 3002
 #      config:
 #        cron: "7 2,14 * * *"
 #        timezone: UTC
-#      payload: '{"infra_id": "3002"}'
+#        payload: '{"infra_id": "3002"}'
 
     - type: Scheduler
       name: Periodic tests on infra 4000
       config:
         cron: "9 3,15 * * *"
         timezone: UTC
-      payload: '{"infra_id": "4000"}'
+        payload: '{"infra_id": "4000"}'
 
     - type: Scheduler
       name: Periodic tests on infra 4001
       config:
         cron: "11 4,16 * * *"
         timezone: UTC
-      payload: '{"infra_id": "4001"}'
+        payload: '{"infra_id": "4001"}'
 
     - type: Scheduler
       name: Periodic tests on infra 4002
       config:
         cron: "13 5,17 * * *"
         timezone: UTC
-      payload: '{"infra_id": "4002"}'
+        payload: '{"infra_id": "4002"}'
 
     - type: Scheduler
       name: Periodic tests on infra 4003
       config:
         cron: "15 6,18 * * *"
         timezone: UTC
-      payload: '{"infra_id": "4003"}'
+        payload: '{"infra_id": "4003"}'
 
     - type: Scheduler
       name: Periodic tests on infra 4100
       config:
         cron: "17 7,19 * * *"
         timezone: UTC
-      payload: '{"infra_id": "4100"}'
+        payload: '{"infra_id": "4100"}'
 
     - type: Scheduler
       name: Periodic tests on infra 400
       config:
         cron: "19 8,20 * * *"
         timezone: UTC
-      payload: '{"infra_id": "400"}'
+        payload: '{"infra_id": "400"}'
