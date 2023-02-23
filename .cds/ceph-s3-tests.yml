@@ -5,6 +5,15 @@ workflow:
   root:
     pipeline: root
     application: ceph-s3-tests
+    payload:
+      "git.author": ""
+      "git.branch": master
+      "git.hash": ""
+      "git.hash.before": ""
+      "git.message": ""
+      "git.repository": OPENIO/ceph-s3-tests
+      "git.tag": ""
+      "infra_id": ""
 
   mirror:
     pipeline: ceph-s3-tests-mirror
@@ -229,9 +238,20 @@ hooks:
     - type: Scheduler
       name: Periodic tests on infra 3000
       config:
-        cron: "3 0,12 * * *"
+        cron: "*/5 * * * *"
         timezone: UTC
-        payload: '{"infra_id": "3000"}'
+#        payload: '{"infra_id": "3000"}'
+        payload: |-
+          {
+            "git.author": "",
+            "git.branch": "master",
+            "git.hash": "",
+            "git.hash.before": "",
+            "git.message": "",
+            "git.repository": "OPENIO/ceph-s3-tests",
+            "git.tag": "",
+             "infra_id": "3000"
+          }
 
     - type: Scheduler
       name: Periodic tests on infra 3001
