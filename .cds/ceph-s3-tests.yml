@@ -238,9 +238,8 @@ hooks:
     - type: Scheduler
       name: Periodic tests on infra 3000
       config:
-        cron: "*/5 * * * *"
+        cron: "3 0,12 * * *"
         timezone: UTC
-#        payload: '{"infra_id": "3000"}'
         payload: |-
           {
             "git.author": "",
@@ -258,81 +257,201 @@ hooks:
       config:
         cron: "2 1,13 * * *"
         timezone: UTC
-        payload: '{"infra_id": "3001"}'
+        payload: |-
+          {
+            "git.author": "",
+            "git.branch": "master",
+            "git.hash": "",
+            "git.hash.before": "",
+            "git.message": "",
+            "git.repository": "OPENIO/ceph-s3-tests",
+            "git.tag": "",
+             "infra_id": "3001"
+          }
 
 #    - type: Scheduler
 #      name: Periodic tests on infra 3002
 #      config:
 #        cron: "7 2,14 * * *"
 #        timezone: UTC
-#        payload: '{"infra_id": "3002"}'
+#        payload: |-
+#          {
+#            "git.author": "",
+#            "git.branch": "master",
+#            "git.hash": "",
+#            "git.hash.before": "",
+#            "git.message": "",
+#            "git.repository": "OPENIO/ceph-s3-tests",
+#            "git.tag": "",
+#             "infra_id": "3002"
+#          }
 
     - type: Scheduler
       name: Periodic tests on infra 4000
       config:
         cron: "9 3,15 * * *"
         timezone: UTC
-        payload: '{"infra_id": "4000"}'
+        payload: |-
+          {
+            "git.author": "",
+            "git.branch": "master",
+            "git.hash": "",
+            "git.hash.before": "",
+            "git.message": "",
+            "git.repository": "OPENIO/ceph-s3-tests",
+            "git.tag": "",
+             "infra_id": "4000"
+          }
 
     - type: Scheduler
       name: Periodic tests on infra 4001
       config:
         cron: "11 4,16 * * *"
         timezone: UTC
-        payload: '{"infra_id": "4001"}'
+        payload: |-
+          {
+            "git.author": "",
+            "git.branch": "master",
+            "git.hash": "",
+            "git.hash.before": "",
+            "git.message": "",
+            "git.repository": "OPENIO/ceph-s3-tests",
+            "git.tag": "",
+             "infra_id": "4001"
+          }
 
     - type: Scheduler
       name: Periodic tests on infra 4002
       config:
         cron: "13 5,17 * * *"
         timezone: UTC
-        payload: '{"infra_id": "4002"}'
+        payload: |-
+          {
+            "git.author": "",
+            "git.branch": "master",
+            "git.hash": "",
+            "git.hash.before": "",
+            "git.message": "",
+            "git.repository": "OPENIO/ceph-s3-tests",
+            "git.tag": "",
+             "infra_id": "4002"
+          }
 
     - type: Scheduler
       name: Periodic tests on infra 4003
       config:
         cron: "15 6,18 * * *"
         timezone: UTC
-        payload: '{"infra_id": "4003"}'
+        payload: |-
+          {
+            "git.author": "",
+            "git.branch": "master",
+            "git.hash": "",
+            "git.hash.before": "",
+            "git.message": "",
+            "git.repository": "OPENIO/ceph-s3-tests",
+            "git.tag": "",
+             "infra_id": "4003"
+          }
 
-    - type: Scheduler
-      name: Periodic tests on infra 4004
-      config:
-        cron: "17 7,19 * * *"
-        timezone: UTC
-        payload: '{"infra_id": "4004"}'
+#    - type: Scheduler
+#      name: Periodic tests on infra 4004
+#      config:
+#        cron: "17 7,19 * * *"
+#        timezone: UTC
+#        payload: |-
+#          {
+#            "git.author": "",
+#            "git.branch": "master",
+#            "git.hash": "",
+#            "git.hash.before": "",
+#            "git.message": "",
+#            "git.repository": "OPENIO/ceph-s3-tests",
+#            "git.tag": "",
+#             "infra_id": "4004"
+#          }
 
-    - type: Scheduler
-      name: Periodic tests on infra 4005
-      config:
-        cron: "19 8,20 * * *"
-        timezone: UTC
-        payload: '{"infra_id": "4005"}'
+#    - type: Scheduler
+#      name: Periodic tests on infra 4005
+#      config:
+#        cron: "19 8,20 * * *"
+#        timezone: UTC
+#        payload: |-
+#          {
+#            "git.author": "",
+#            "git.branch": "master",
+#            "git.hash": "",
+#            "git.hash.before": "",
+#            "git.message": "",
+#            "git.repository": "OPENIO/ceph-s3-tests",
+#            "git.tag": "",
+#             "infra_id": "4005"
+#          }
 
-    - type: Scheduler
-      name: Periodic tests on infra 4006
-      config:
-        cron: "21 9,21 * * *"
-        timezone: UTC
-        payload: '{"infra_id": "4006}'
+#    - type: Scheduler
+#      name: Periodic tests on infra 4006
+#      config:
+#        cron: "21 9,21 * * *"
+#        timezone: UTC
+#        payload: |-
+#          {
+#            "git.author": "",
+#            "git.branch": "master",
+#            "git.hash": "",
+#            "git.hash.before": "",
+#            "git.message": "",
+#            "git.repository": "OPENIO/ceph-s3-tests",
+#            "git.tag": "",
+#             "infra_id": "4006"
+#          }
 
     - type: Scheduler
       name: Periodic tests on infra 4100
       config:
         cron: "23 10,22 * * *"
         timezone: UTC
-        payload: '{"infra_id": "4100"}'
+        payload: |-
+          {
+            "git.author": "",
+            "git.branch": "master",
+            "git.hash": "",
+            "git.hash.before": "",
+            "git.message": "",
+            "git.repository": "OPENIO/ceph-s3-tests",
+            "git.tag": "",
+             "infra_id": "4100"
+          }
 
     - type: Scheduler
       name: Periodic tests on infra 400
       config:
         cron: "25 11,21 * * *"
         timezone: UTC
-        payload: '{"infra_id": "400"}'
+        payload: |-
+          {
+            "git.author": "",
+            "git.branch": "master",
+            "git.hash": "",
+            "git.hash.before": "",
+            "git.message": "",
+            "git.repository": "OPENIO/ceph-s3-tests",
+            "git.tag": "",
+             "infra_id": "400"
+          }
 
     - type: Scheduler
       name: Periodic tests on infra 401
       config:
         cron: "30 0,12 * * *"
         timezone: UTC
-        payload: '{"infra_id": "401"}'
+        payload: |-
+          {
+            "git.author": "",
+            "git.branch": "master",
+            "git.hash": "",
+            "git.hash.before": "",
+            "git.message": "",
+            "git.repository": "OPENIO/ceph-s3-tests",
+            "git.tag": "",
+             "infra_id": "401"
+          }
