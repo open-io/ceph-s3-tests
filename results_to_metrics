@@ -8,7 +8,7 @@ BEGIN{
 # the unexpected pass tests list is printed after the header 'UNEXPECTED_PASS:'
 /^UNEXPECTED_PASS:$/ { type="unexpected_pass" }
 # the new failures tests list is printed after the header 'NEW_FAILURES:'
-/^NEW_FAILURES:$/    { type="new_failures" }
+/^NEW_FAILURE:$/     { type="new_failures" }
 
 # sample: s3tests_boto3.functional.test_s3.test_buckets_list_ctime
 /^\w+(\.\w+)*$/ {
