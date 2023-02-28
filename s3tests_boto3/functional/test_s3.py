@@ -15003,6 +15003,8 @@ def test_sse_s3_encrypted_upload_8mb():
 @attr(assertion='success')
 @attr('website')
 def test_get_object_website_with_AllUsers_FullControl():
+    host = get_config_host()
+    host = host[3:]  # remove "s3."
     bucket_name = get_new_bucket_name()
     client = get_client()
     client.create_bucket(Bucket=bucket_name)
@@ -15016,7 +15018,7 @@ def test_get_object_website_with_AllUsers_FullControl():
     client.put_bucket_website(Bucket=bucket_name, WebsiteConfiguration=website_config)
     client.put_object_acl(Bucket=bucket_name, Key=object_name,
         GrantFullControl='uri=http://acs.amazonaws.com/groups/global/AllUsers')
-    r = requests.get("http://" + bucket_name + ".s3-website.localhost:5000/", allow_redirects=False)
+    r = requests.get("http://" + bucket_name + ".s3-website." + host + ":5000/", allow_redirects=False)
     eq(r.status_code, 200)
 
 @attr(resource='object')
@@ -15025,6 +15027,8 @@ def test_get_object_website_with_AllUsers_FullControl():
 @attr(assertion='success')
 @attr('website')
 def test_get_object_website_with_AllUsers_Read():
+    host = get_config_host()
+    host = host[3:]  # remove "s3."
     bucket_name = get_new_bucket_name()
     client = get_client()
     client.create_bucket(Bucket=bucket_name)
@@ -15038,7 +15042,7 @@ def test_get_object_website_with_AllUsers_Read():
     client.put_bucket_website(Bucket=bucket_name, WebsiteConfiguration=website_config)
     client.put_object_acl(Bucket=bucket_name, Key=object_name,
         GrantRead='uri=http://acs.amazonaws.com/groups/global/AllUsers')
-    r = requests.get("http://" + bucket_name + ".s3-website.localhost:5000/", allow_redirects=False)
+    r = requests.get("http://" + bucket_name + ".s3-website." + host + ":5000/", allow_redirects=False)
     eq(r.status_code, 200)
 
 @attr(resource='object')
@@ -15047,6 +15051,8 @@ def test_get_object_website_with_AllUsers_Read():
 @attr(assertion='fails')
 @attr('website')
 def test_get_object_website_with_AllUsers_Write():
+    host = get_config_host()
+    host = host[3:]  # remove "s3."
     bucket_name = get_new_bucket_name()
     client = get_client()
     client.create_bucket(Bucket=bucket_name)
@@ -15060,7 +15066,7 @@ def test_get_object_website_with_AllUsers_Write():
     client.put_bucket_website(Bucket=bucket_name, WebsiteConfiguration=website_config)
     client.put_object_acl(Bucket=bucket_name, Key=object_name,
         GrantWrite='uri=http://acs.amazonaws.com/groups/global/AllUsers')
-    r = requests.get("http://" + bucket_name + ".s3-website.localhost:5000/", allow_redirects=False)
+    r = requests.get("http://" + bucket_name + ".s3-website." + host + ":5000/", allow_redirects=False)
     eq(r.status_code, 403)
 
 @attr(resource='object')
@@ -15069,6 +15075,8 @@ def test_get_object_website_with_AllUsers_Write():
 @attr(assertion='fails')
 @attr('website')
 def test_get_object_website_with_AllUsers_Read_ACP():
+    host = get_config_host()
+    host = host[3:]  # remove "s3."
     bucket_name = get_new_bucket_name()
     client = get_client()
     client.create_bucket(Bucket=bucket_name)
@@ -15082,7 +15090,7 @@ def test_get_object_website_with_AllUsers_Read_ACP():
     client.put_bucket_website(Bucket=bucket_name, WebsiteConfiguration=website_config)
     client.put_object_acl(Bucket=bucket_name, Key=object_name,
         GrantReadACP='uri=http://acs.amazonaws.com/groups/global/AllUsers')
-    r = requests.get("http://" + bucket_name + ".s3-website.localhost:5000/", allow_redirects=False)
+    r = requests.get("http://" + bucket_name + ".s3-website." + host + ":5000/", allow_redirects=False)
     eq(r.status_code, 403)
 
 @attr(resource='object')
@@ -15091,6 +15099,8 @@ def test_get_object_website_with_AllUsers_Read_ACP():
 @attr(assertion='fails')
 @attr('website')
 def test_get_object_website_with_AllUsers_WriteACP():
+    host = get_config_host()
+    host = host[3:]  # remove "s3."
     bucket_name = get_new_bucket_name()
     client = get_client()
     client.create_bucket(Bucket=bucket_name)
@@ -15104,5 +15114,5 @@ def test_get_object_website_with_AllUsers_WriteACP():
     client.put_bucket_website(Bucket=bucket_name, WebsiteConfiguration=website_config)
     client.put_object_acl(Bucket=bucket_name, Key=object_name,
         GrantWriteACP='uri=http://acs.amazonaws.com/groups/global/AllUsers')
-    r = requests.get("http://" + bucket_name + ".s3-website.localhost:5000/", allow_redirects=False)
+    r = requests.get("http://" + bucket_name + ".s3-website." + host + ":5000/", allow_redirects=False)
     eq(r.status_code, 403)
