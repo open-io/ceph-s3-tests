@@ -77,7 +77,7 @@ jobs:
         script:
           - . virtualenv/bin/activate
           - ./s3compat/bin/get_ceph_test_attributes.py
-          - ./s3compat/bin/report.py -kf "known-failures/{{.infra_id}}.yaml" --detailed s3compat/output/ceph-s3.out.yaml "tests_report.xml" | tee tests_report.txt
+          - ./s3compat/bin/report.py -kf "known-failures/common.yaml" -kf "known-failures/{{.infra_id}}.yaml" --detailed s3compat/output/ceph-s3.out.yaml "tests_report.xml" | tee tests_report.txt
           - ./results_to_metrics <tests_report.txt >tests_report.openmetrics
 
       - name: Save tests report
