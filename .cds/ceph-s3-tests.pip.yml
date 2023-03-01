@@ -54,9 +54,13 @@ jobs:
 
       - name: Run tests
         optional: true
-        script:
-          - cd $HOME
-          - S3TEST_CONF=ceph-s3-tests.conf ./virtualenv/bin/nosetests -a '!fails_on_aws' --debug-log=debug.log -v --with-xunit --xunit-file=tests_report.xml s3tests_boto3.functional.test_s3
+        script: |+
+          #!/bin/bash
+          start=$(date +%s)
+          cd $HOME
+          S3TEST_CONF=ceph-s3-tests.conf ./virtualenv/bin/nosetests -a '!fails_on_aws' --debug-log=debug.log -v --with-xunit --xunit-file=tests_report.xml s3tests_boto3.functional.test_s3 || true
+          stop=$(date +%s)
+          worker export tests_duration $(($stop-$start))
 
       - name: Cleanup
         optional: true
@@ -64,7 +68,6 @@ jobs:
           #!/bin/bash
           . virtualenv/bin/activate
           pip install awscli
-          set -x
           python clean-all-buckets.py "{{.cds.build.u0_username}}" "https://{{.cds.build.s3_server}}:{{.cds.build.s3_port}}"
           python clean-all-buckets.py "{{.cds.build.u1_username}}" "https://{{.cds.build.s3_server}}:{{.cds.build.s3_port}}"
 
