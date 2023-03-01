@@ -54,6 +54,8 @@ from . import (
     get_config_is_secure,
     get_config_host,
     get_config_port,
+    get_config_host_website,
+    get_config_port_website,
     get_config_endpoint,
     get_config_ssl_verify,
     get_main_aws_access_key,
@@ -16367,7 +16369,7 @@ def test_get_object_website_with_AllUsers_FullControl():
     client.put_bucket_website(Bucket=bucket_name, WebsiteConfiguration=website_config)
     client.put_object_acl(Bucket=bucket_name, Key=object_name,
         GrantFullControl='uri=http://acs.amazonaws.com/groups/global/AllUsers')
-    r = requests.get("http://" + bucket_name + ".s3-website.localhost:5000/", allow_redirects=False)
+    r = requests.get(_get_endpoint_website(bucket_name), allow_redirects=False)
     assert r.status_code == 200
 
 @pytest.mark.s3website
@@ -16385,7 +16387,7 @@ def test_get_object_website_with_AllUsers_Read():
     client.put_bucket_website(Bucket=bucket_name, WebsiteConfiguration=website_config)
     client.put_object_acl(Bucket=bucket_name, Key=object_name,
         GrantRead='uri=http://acs.amazonaws.com/groups/global/AllUsers')
-    r = requests.get("http://" + bucket_name + ".s3-website.localhost:5000/", allow_redirects=False)
+    r = requests.get(_get_endpoint_website(bucket_name), allow_redirects=False)
     assert r.status_code == 200
 
 @pytest.mark.s3website
@@ -16403,7 +16405,7 @@ def test_get_object_website_with_AllUsers_Write():
     client.put_bucket_website(Bucket=bucket_name, WebsiteConfiguration=website_config)
     client.put_object_acl(Bucket=bucket_name, Key=object_name,
         GrantWrite='uri=http://acs.amazonaws.com/groups/global/AllUsers')
-    r = requests.get("http://" + bucket_name + ".s3-website.localhost:5000/", allow_redirects=False)
+    r = requests.get(_get_endpoint_website(bucket_name), allow_redirects=False)
     assert r.status_code == 403
 
 @pytest.mark.s3website
@@ -16421,7 +16423,7 @@ def test_get_object_website_with_AllUsers_Read_ACP():
     client.put_bucket_website(Bucket=bucket_name, WebsiteConfiguration=website_config)
     client.put_object_acl(Bucket=bucket_name, Key=object_name,
         GrantReadACP='uri=http://acs.amazonaws.com/groups/global/AllUsers')
-    r = requests.get("http://" + bucket_name + ".s3-website.localhost:5000/", allow_redirects=False)
+    r = requests.get(_get_endpoint_website(bucket_name), allow_redirects=False)
     assert r.status_code == 403
 
 @pytest.mark.s3website
@@ -16439,5 +16441,5 @@ def test_get_object_website_with_AllUsers_WriteACP():
     client.put_bucket_website(Bucket=bucket_name, WebsiteConfiguration=website_config)
     client.put_object_acl(Bucket=bucket_name, Key=object_name,
         GrantWriteACP='uri=http://acs.amazonaws.com/groups/global/AllUsers')
-    r = requests.get("http://" + bucket_name + ".s3-website.localhost:5000/", allow_redirects=False)
+    r = requests.get(_get_endpoint_website(bucket_name), allow_redirects=False)
     assert r.status_code == 403

@@ -202,6 +202,8 @@ def configure():
     config.default_host = defaults.get("host")
     config.default_port = int(defaults.get("port"))
     config.default_is_secure = cfg.getboolean('DEFAULT', "is_secure")
+    config.default_host_website = defaults.get("host_website", config.default_host.replace('s3.', 's3-website.'))
+    config.default_port_website = int(defaults.get("port_website", 80))
 
     proto = 'https' if config.default_is_secure else 'http'
     config.default_endpoint = "%s://%s:%d" % (proto, config.default_host, config.default_port)
@@ -651,6 +653,12 @@ def get_config_host():
 
 def get_config_port():
     return config.default_port
+
+def get_config_host_website():
+    return config.default_host_website
+
+def get_config_port_website():
+    return config.default_port_website
 
 def get_config_endpoint():
     return config.default_endpoint
