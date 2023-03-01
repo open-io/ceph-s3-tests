@@ -23,6 +23,7 @@ BEGIN{
 }
 
 END {
+    print "ceph_s3_tests_last_results_duration_seconds{infra_id=\"" ENVIRON["CDS_ENV_infra_id"] "\"} " ENVIRON["CDS_BUILD_TESTS_DURATION"]
     print "ceph_s3_tests_last_results_count{type=\"new_failures\",infra_id=\"" ENVIRON["CDS_ENV_infra_id"] "\"} " new_failures
     print "ceph_s3_tests_last_results_count{type=\"unexpected_pass\",infra_id=\"" ENVIRON["CDS_ENV_infra_id"] "\"} " unexpected_pass
     print "ceph_s3_tests_last_results_timestamp_seconds{infra_id=\"" ENVIRON["CDS_ENV_infra_id"] "\"} " strftime("%s")
