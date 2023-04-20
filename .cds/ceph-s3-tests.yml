@@ -368,22 +368,22 @@ hooks:
              "infra_id": "4003"
           }
 
-#    - type: Scheduler
-#      name: Periodic tests on infra 4004
-#      config:
-#        cron: "17 7,19 * * *"
-#        timezone: UTC
-#        payload: |-
-#          {
-#            "git.author": "",
-#            "git.branch": "master",
-#            "git.hash": "",
-#            "git.hash.before": "",
-#            "git.message": "",
-#            "git.repository": "OPENIO/ceph-s3-tests",
-#            "git.tag": "",
-#             "infra_id": "4004"
-#          }
+    - type: Scheduler
+      name: Periodic tests on infra 4004
+      config:
+        cron: "17 7,19 * * *"
+        timezone: UTC
+        payload: |-
+          {
+            "git.author": "",
+            "git.branch": "master",
+            "git.hash": "",
+            "git.hash.before": "",
+            "git.message": "",
+            "git.repository": "OPENIO/ceph-s3-tests",
+            "git.tag": "",
+             "infra_id": "4004"
+          }
 
     - type: Scheduler
       name: Periodic tests on infra 4005
