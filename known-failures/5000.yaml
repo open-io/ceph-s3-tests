@@ -1,4 +1,6 @@
 ceph_s3:
+  s3tests_boto3.functional.test_s3.test_delete_bucket_encryption_s3: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_get_bucket_encryption_s3: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_get_object_website_with_AllUsers_FullControl: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_get_object_website_with_AllUsers_Read: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_get_object_website_with_AllUsers_Write: {status: KNOWN}
@@ -25,8 +27,14 @@ ceph_s3:
   s3tests_boto3.functional.test_s3.test_versioned_object_acl_no_version_specified: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_versioned_concurrent_object_create_concurrent_remove: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_versioned_concurrent_object_create_and_remove: {status: KNOWN}
+  # --- SSE-S3 enabled by default, SSE-C disabled on infra 5000 ---------------
+  s3tests_boto3.functional.test_s3.test_encrypted_transfer_1b: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_encrypted_transfer_1kb: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_encrypted_transfer_1MB: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_encrypted_transfer_13b: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_encryption_key_no_sse_c: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_encryption_sse_c_method_head: {status: KNOWN}
-  s3tests_boto3.functional.test_s3.test_encryption_sse_c_present: {status: KNOWN}
+  # ---------------------------------------------------------------------------
   s3tests_boto3.functional.test_s3.test_object_lock_put_obj_lock: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_object_lock_put_obj_lock_with_days_and_years: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_object_lock_put_obj_lock_invalid_days: {status: KNOWN}
