@@ -109,7 +109,6 @@ ceph_s3:
   s3tests_boto3.functional.test_s3.test_object_set_get_metadata_overwrite_to_empty: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_object_set_get_non_utf8_metadata: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_object_set_get_unicode_metadata: {status: KNOWN}
-  s3tests_boto3.functional.test_s3.test_object_write_cache_control: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_object_write_expires: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_post_object_anonymous_request: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_post_object_authenticated_no_content_type: {status: KNOWN}
