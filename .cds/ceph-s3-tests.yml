@@ -191,12 +191,12 @@ workflow:
           value: "4006"
     one_at_a_time: true
 
-  ceph-s3-tests-4008:
+  ceph-s3-tests-infra4008:
     pipeline: ceph-s3-tests
     application: ceph-s3-tests
     depends_on:
       - root
-    environment: s3-tests-4008
+    environment: s3-tests-infra4008
     conditions:
       check:
         - variable: infra_id
