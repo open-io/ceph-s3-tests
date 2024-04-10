@@ -18,6 +18,20 @@ jobs:
           - eval $(worker key install --env-git proj-ssh-openio)
           - git clone {{ .cds.proj.STASH_URL }}/openio/external-packages.git /external-packages
 
+      - name: Check known failures files
+        script: |+
+          #!/bin/bash
+          RED='\033[0;31m'
+          NC='\033[0m' # No Color
+          for infra_id in $(sed -n -E 's/.*"infra_id": "([[:digit:]]+)".*/\1/p' .cds/ceph-s3-tests.yml)
+          do
+            if [ ! -f "known-failures/${infra_id}.yaml" ]
+            then
+                echo -e "Missing file ${RED}known-failures/${infra_id}.yaml${NC}"
+                exit 1
+            fi
+          done
+
       - name: Build package and upload
         script: |+
           #!/bin/bash
