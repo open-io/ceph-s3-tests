@@ -22,6 +22,8 @@ jobs:
           rm -rf s3compat/ceph-tests
           ln -s {{.cds.workspace}} s3compat/ceph-tests
           . virtualenv/bin/activate
+          PYTZ=$(sed -n -E -e 's/(pytz >=)(.+)$/\2/p' requirements.txt)
+          sed -E -e "s/(pytz >=)(.+)$/\\1${PYTZ}/" -i s3compat/requirements.txt
           pip install -r s3compat/requirements.txt
 
       - name: Generate configuration file
