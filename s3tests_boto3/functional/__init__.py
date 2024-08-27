@@ -136,7 +136,12 @@ bucket cleanup'.format(bucket, delta.total_seconds()))
                     Delete={'Objects': objects, 'Quiet': True},
                     BypassGovernanceRetention=True)
 
-    client.delete_bucket(Bucket=bucket)
+    try:
+        client.delete_bucket(Bucket=bucket)
+    except ClientError as err:
+        # We may get NoSuchBucket after a timeout/retry
+        if err.response.get('Error', {}).get('Code') != 'NoSuchBucket':
+            raise
 
 def nuke_prefixed_buckets(prefix, client=None):
     if client == None:
