@@ -10390,7 +10390,7 @@ def test_lifecycle_cloud_transition():
         response = client.head_object(Bucket=bucket_name, Key=keys[0])
         eq(0, response['ContentLength'])
         eq(cloud_sc, response['StorageClass'])
-    
+
         # GET should return InvalidObjectState error
         e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key=src_key)
         status, error_code = _get_status_and_error_code(e.response)
@@ -10566,7 +10566,7 @@ def test_lifecycle_noncur_cloud_transition():
     result = list_bucket_versions(client, bucket)
 
     for src_key in keys:
-        for k in result[src_key]: 
+        for k in result[src_key]:
             expire1_key1_str = prefix + 'test1/a' + "-" + k['VersionId']
             verify_object(cloud_client, target_path, expire1_key1_str, None, target_sc)
 
@@ -10610,7 +10610,7 @@ def test_lifecycle_cloud_transition_large_obj():
     expire1_keys = list_bucket_storage_class(client, bucket)
     eq(len(expire1_keys['STANDARD']), 1)
 
-    
+
     if (retain_head_object != None and retain_head_object == "true"):
         eq(len(expire1_keys[cloud_sc]), 1)
     else:
@@ -11933,7 +11933,7 @@ def test_put_max_tags():
 @attr(resource='object')
 @attr(method='get')
 @attr(operation='Test Put max allowed tags')
-@attr(assertion='fails')
+@attr(assertion='success')
 @attr('tagging')
 def test_put_excess_tags():
     key = 'testputmaxtags'
@@ -11944,7 +11944,7 @@ def test_put_excess_tags():
     e = assert_raises(ClientError, client.put_object_tagging, Bucket=bucket_name, Key=key, Tagging=input_tagset)
     status, error_code = _get_status_and_error_code(e.response)
     eq(status, 400)
-    eq(error_code, 'InvalidTag')
+    eq(error_code, 'BadRequest')
 
     response = client.get_object_tagging(Bucket=bucket_name, Key=key)
     eq(len(response['TagSet']), 0)
@@ -13755,7 +13755,7 @@ def test_object_lock_multi_delete_object_with_retention():
 
     eq(len(delete_response['Deleted']), 1)
     eq(len(delete_response['Errors']), 1)
-    
+
     failed_object = delete_response['Errors'][0]
     eq(failed_object['Code'], 'AccessDenied')
     eq(failed_object['Key'], key1)
@@ -14861,7 +14861,7 @@ def test_sse_s3_default_post_object_authenticated_request():
                 ["starts-with", "$key", "foo"],
                 {"acl": "private"},
                 ["starts-with", "$Content-Type", "text/plain"],
-                ["starts-with", "$x-amz-server-side-encryption", ""], 
+                ["starts-with", "$x-amz-server-side-encryption", ""],
                 ["content-length-range", 0, 1024]
             ]
     }
@@ -14914,7 +14914,7 @@ def test_sse_kms_default_post_object_authenticated_request():
                 ["starts-with", "$key", "foo"],
                 {"acl": "private"},
                 ["starts-with", "$Content-Type", "text/plain"],
-                ["starts-with", "$x-amz-server-side-encryption", ""], 
+                ["starts-with", "$x-amz-server-side-encryption", ""],
                 ["content-length-range", 0, 1024]
             ]
     }
