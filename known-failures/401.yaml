@@ -1,15 +1,1 @@
-ceph_s3:
-  # --- SSE-S3 not enabled yet ------------------------------------------------
-  s3tests_boto3.functional.test_s3.test_put_bucket_encryption_s3: {status: KNOWN}
-  s3tests_boto3.functional.test_s3.test_get_bucket_encryption_s3: {status: KNOWN}
-  s3tests_boto3.functional.test_s3.test_delete_bucket_encryption_s3: {status: KNOWN}
-  s3tests_boto3.functional.test_s3.test_sse_s3_default_upload_1b: {status: KNOWN}
-  s3tests_boto3.functional.test_s3.test_sse_s3_default_upload_1kb: {status: KNOWN}
-  s3tests_boto3.functional.test_s3.test_sse_s3_default_upload_1mb: {status: KNOWN}
-  s3tests_boto3.functional.test_s3.test_sse_s3_default_upload_8mb: {status: KNOWN}
-  s3tests_boto3.functional.test_s3.test_sse_s3_default_multipart_upload: {status: KNOWN}
-  s3tests_boto3.functional.test_s3.test_sse_s3_encrypted_upload_1b: {status: KNOWN}
-  s3tests_boto3.functional.test_s3.test_sse_s3_encrypted_upload_1kb: {status: KNOWN}
-  s3tests_boto3.functional.test_s3.test_sse_s3_encrypted_upload_1mb: {status: KNOWN}
-  s3tests_boto3.functional.test_s3.test_sse_s3_encrypted_upload_8mb: {status: KNOWN}
-  # ---------------------------------------------------------------------------
+ceph_s3: {}
