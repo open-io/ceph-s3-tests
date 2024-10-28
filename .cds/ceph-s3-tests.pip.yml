@@ -61,7 +61,12 @@ jobs:
           #!/bin/bash
           start=$(date +%s)
           cd $HOME
-          S3TEST_CONF=ceph-s3-tests.conf ./virtualenv/bin/nosetests -a '!fails_on_aws' --debug-log=debug.log -v --with-xunit --xunit-file=tests_report.xml s3tests_boto3.functional.test_s3 || true
+          S3TEST_CONF=ceph-s3-tests.conf ./virtualenv/bin/nosetests \
+            -v --debug-log=debug.log \
+            --with-xunit --xunit-file=tests_report.xml \
+            -a '!fails_on_aws' \
+            s3tests_boto3.functional.test_s3 \
+            s3tests_boto3.functional.test_headers || true
           stop=$(date +%s)
           worker export tests_duration $(($stop-$start))
 
