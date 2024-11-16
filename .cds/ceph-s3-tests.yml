@@ -284,6 +284,20 @@ workflow:
     one_at_a_time: true
     optional: true
 
+  ceph-s3-tests-infra5002:
+    pipeline: ceph-s3-tests
+    application: ceph-s3-tests
+    depends_on:
+      - root
+    environment: s3-tests-infra5002
+    conditions:
+      check:
+        - variable: infra_id
+          operator: eq
+          value: "5002"
+    one_at_a_time: true
+    optional: true
+
   ceph-s3-tests-infra400:
     pipeline: ceph-s3-tests
     application: ceph-s3-tests
@@ -615,6 +629,23 @@ hooks:
             "git.repository": "OPENIO/ceph-s3-tests",
             "git.tag": "",
              "infra_id": "5000"
+          }
+
+    - type: Scheduler
+      name: Periodic tests on infra 5002
+      config:
+        cron: "40 11,23 * * *"
+        timezone: UTC
+        payload: |-
+          {
+            "git.author": "",
+            "git.branch": "master",
+            "git.hash": "",
+            "git.hash.before": "",
+            "git.message": "",
+            "git.repository": "OPENIO/ceph-s3-tests",
+            "git.tag": "",
+             "infra_id": "5002"
           }
 
     - type: Scheduler
