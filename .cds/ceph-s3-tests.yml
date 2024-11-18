@@ -326,7 +326,26 @@ workflow:
     one_at_a_time: true
     optional: true
 
-retention_policy: "if(cds_triggered_by_username == 'cds.scheduler') then\n  return run_days_before < 1\nend\nif(has_git_branch == \"true\") then\n  if(git_branch_exist == \"true\") then    \n    return run_days_before < 365\n  else\n    return run_days_before < 2\n  end\nelse\n  return run_days_before < 365\nend"
+retention_policy: |+
+  # Keep auto runs in error for 4 days (to check for weekend ones).
+  if(cds_triggered_by_username == 'cds.scheduler') then
+    if(run_status == "Success") then
+      return run_days_before < 1
+    else
+      return run_days_before < 4
+    end
+  end
+  # Keep Run for 365 days if git_branch is set and exists in VCS or only 2 days for removed branches
+  # Else keep Run for 365 days if no git_branch info is set
+  if(has_git_branch == "true") then
+    if(git_branch_exist == "true") then
+      return run_days_before < 365
+    else
+      return run_days_before < 2
+    end
+  else
+    return run_days_before < 365
+  end
 
 metadata:
   default_tags: git.branch,git.author,git.tag,infra_id
