@@ -40,7 +40,11 @@ jobs:
 
           # ensure other variables are set
           _check=1
-          for var in s3_server s3_port s3_region u0_access u0_secret u0_username u0_projectname u1_access u1_secret u1_username; do
+          check_vars="s3_server s3_port s3_region"
+          check_vars="$check_vars u0_username u0_projectname"
+          check_vars="$check_vars u1_access u1_secret u1_username"
+          for var in $check_vars
+          do
             _var="CDS_ENV_${var^^}"
             [[ -z "${!_var}" ]] && echo "missing env variable '$var' from infra CDS environment" && _check=0
             worker export ${var} "${!_var}"
@@ -76,15 +80,20 @@ jobs:
           #!/bin/bash
           . virtualenv/bin/activate
           pip install awscli
-          python clean-all-buckets.py "{{.cds.build.u0_username}}" "https://{{.cds.build.s3_server}}:{{.cds.build.s3_port}}"
-          python clean-all-buckets.py "{{.cds.build.u1_username}}" "https://{{.cds.build.s3_server}}:{{.cds.build.s3_port}}"
+          ENDPOINT="https://{{.cds.build.s3_server}}:{{.cds.build.s3_port}}"
+          python clean-all-buckets.py "{{.cds.build.u0_username}}" "$ENDPOINT"
+          python clean-all-buckets.py "{{.cds.build.u1_username}}" "$ENDPOINT"
 
       - name: Analyze tests results
         script: |+
           #!/bin/bash
           . virtualenv/bin/activate
           ./s3compat/bin/get_ceph_test_attributes.py
-          ./s3compat/bin/report.py -kf "known-failures/common.yaml" -kf "known-failures/{{.infra_id}}.yaml" --detailed s3compat/output/ceph-s3.out.yaml "tests_report.xml" | tee tests_report.txt
+          ./s3compat/bin/report.py \
+            -kf "known-failures/common.yaml" \
+            -kf "known-failures/{{.infra_id}}.yaml" \
+            --detailed s3compat/output/ceph-s3.out.yaml "tests_report.xml" \
+            | tee tests_report.txt
           ./results_to_metrics <tests_report.txt >tests_report.openmetrics
           number_of_failures="$(grep new_failures tests_report.openmetrics)"
           worker export number_of_failures ${number_of_failures//* }
@@ -120,8 +129,11 @@ jobs:
               endpoint_url = {{.cds.proj.kpi_s3_endpoint}}
           EOF
 
-          aws --profile kpi s3 cp tests_report.openmetrics s3://{{.cds.proj.kpi_s3_bucket}}/{{.cds.application}}/{{.cds.env.infra_id}}/results.$(date +%Y%d%m-%H%M).openmetrics
-          aws --profile kpi s3 cp tests_report.openmetrics s3://{{.cds.proj.kpi_s3_bucket}}/{{.cds.application}}/results.{{.cds.env.infra_id}}.openmetrics
+          S3_PREFIX="s3://{{.cds.proj.kpi_s3_bucket}}/{{.cds.application}}"
+          DATED="{{.cds.env.infra_id}}/results.$(date +%Y%d%m-%H%M).openmetrics"
+          GLOBAL="results.{{.cds.env.infra_id}}.openmetrics"
+          aws --profile kpi s3 cp tests_report.openmetrics ${S3_PREFIX}/${DATED}
+          aws --profile kpi s3 cp tests_report.openmetrics ${S3_PREFIX}/${GLOBAL}
 
       - name: jUnitReport
         optional: true

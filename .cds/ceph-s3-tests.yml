@@ -351,11 +351,11 @@ metadata:
   default_tags: git.branch,git.author,git.tag,infra_id
 
 notifications:
-- type: vcs
-  settings:
-    on_success: always
-    template:
-      disable_comment: true
+  - type: vcs
+    settings:
+      on_success: always
+      template:
+        disable_comment: true
 
 # run tests on all infra twice a day
 hooks:
