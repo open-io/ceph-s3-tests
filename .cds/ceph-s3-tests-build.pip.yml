@@ -1,4 +1,3 @@
-
 version: v1.0
 name: ceph-s3-tests-build
 jobs:
@@ -51,8 +50,10 @@ jobs:
           else
             PACKAGE=${PACKAGE}-$(date +%Y%m%d).git{{ .git.hash.short }}
           fi
+          OUSER="{{ .cds.proj.drive_mirrors_objectstorage_openio_user }}"
+          OPASS="{{ .cds.proj.drive_mirrors_objectstorage_openio_password }}"
           export PACKAGE=${PACKAGE}-ovh${CDS_VERSION}
-          export REPO_URL="https://{{ .cds.proj.drive_mirrors_objectstorage_openio_user }}:{{ .cds.proj.drive_mirrors_objectstorage_openio_password }}@{{ .cds.proj.drive_mirrors_hostname }}"
+          export REPO_URL="https://${OUSER}:${OPASS}@{{ .cds.proj.drive_mirrors_hostname }}"
           make -f /external-packages/ubuntu/focal/Makefile.common install-apt-repo
           make -f /external-packages/ubuntu/focal/Makefile.common deb_changelog
           make -f /external-packages/ubuntu/focal/Makefile.common
