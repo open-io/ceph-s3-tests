@@ -107,7 +107,7 @@ jobs:
         script: |+
           #!/bin/bash
           . virtualenv/bin/activate
-          pip install --upgrade awscli awscli-plugin-endpoint
+          pip install --upgrade "botocore<1.36.0" awscli awscli-plugin-endpoint
           cd {{.cds.workspace}}
           mkdir -p "$HOME/.aws"
           cat <<EOF >>"$HOME/.aws/credentials"

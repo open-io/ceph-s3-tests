@@ -1,5 +1,6 @@
 PyYAML
 nose >=1.0.0
+botocore<1.36.0  # To be removed when CRC32 checksum algorithm is supported
 boto >=2.6.0
 boto3 >=1.0.0
 munch >=2.0.0
