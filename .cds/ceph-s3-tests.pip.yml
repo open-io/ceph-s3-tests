@@ -21,6 +21,7 @@ jobs:
           PYTZ=$(sed -n -E -e 's/(pytz >=)(.+)$/\2/p' requirements.txt)
           sed -E -e "s/(pytz >=)(.+)$/\\1${PYTZ}/" -i s3compat/requirements.txt
           pip install -r s3compat/requirements.txt
+          pip install --progress-bar off --upgrade "botocore<1.36.0" "awscli<1.37.0" awscli-plugin-endpoint
 
       - name: Generate configuration file
         script: |+
@@ -79,7 +80,6 @@ jobs:
         script: |+
           #!/bin/bash
           . virtualenv/bin/activate
-          pip install awscli
           ENDPOINT="https://{{.cds.build.s3_server}}:{{.cds.build.s3_port}}"
           python clean-all-buckets.py "{{.cds.build.u0_username}}" "$ENDPOINT"
           python clean-all-buckets.py "{{.cds.build.u1_username}}" "$ENDPOINT"
@@ -107,7 +107,6 @@ jobs:
         script: |+
           #!/bin/bash
           . virtualenv/bin/activate
-          pip install --upgrade "botocore<1.36.0" awscli awscli-plugin-endpoint
           cd {{.cds.workspace}}
           mkdir -p "$HOME/.aws"
           cat <<EOF >>"$HOME/.aws/credentials"
