@@ -382,6 +382,23 @@ hooks:
           }
 
     - type: Scheduler
+      name: Periodic tests on infra 3001 (deps)
+      config:
+        cron: "2 7,20 * * *"
+        timezone: UTC
+        payload: |-
+          {
+            "git.author": "",
+            "git.branch": "update-dependencies",
+            "git.hash": "",
+            "git.hash.before": "",
+            "git.message": "",
+            "git.repository": "OPENIO/ceph-s3-tests",
+            "git.tag": "",
+             "infra_id": "3001"
+          }
+
+    - type: Scheduler
       name: Periodic tests on infra 3002
       config:
         cron: "7 2,14 * * *"
