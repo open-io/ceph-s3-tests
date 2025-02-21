@@ -21,7 +21,7 @@ jobs:
           PYTZ=$(sed -n -E -e 's/(pytz >=)(.+)$/\2/p' requirements.txt)
           sed -E -e "s/(pytz >=)(.+)$/\\1${PYTZ}/" -i s3compat/requirements.txt
           pip install -r s3compat/requirements.txt
-          pip install --progress-bar off --upgrade "botocore<1.36.0" "awscli<1.37.0" awscli-plugin-endpoint
+          pip install --progress-bar off --upgrade awscli awscli-plugin-endpoint botocore
 
       - name: Generate configuration file
         script: |+
@@ -107,6 +107,8 @@ jobs:
         script: |+
           #!/bin/bash
           . virtualenv/bin/activate
+          # To be removed when CRC32 checksum algorithm is officially supported
+          pip install --progress-bar off --upgrade "botocore<1.36.0" "awscli<1.37.0"
           cd {{.cds.workspace}}
           mkdir -p "$HOME/.aws"
           cat <<EOF >>"$HOME/.aws/credentials"
