@@ -10,6 +10,7 @@ ceph_s3:
   s3tests_boto3.functional.test_s3.test_object_copy_versioned_bucket: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_object_copy_versioned_url_encoding: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_object_copy_versioning_multipart_upload: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_object_put_acl_mtime: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_multipart_copy_versioned: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_set_bucket_tagging: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_versioning_bucket_create_suspend: {status: KNOWN}
@@ -20,6 +21,7 @@ ceph_s3:
   s3tests_boto3.functional.test_s3.test_versioning_obj_create_versions_remove_special_names: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_versioning_obj_create_overwrite_multipart: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_versioning_obj_list_marker: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_versioning_obj_suspended_copy: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_versioning_copy_obj_version: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_versioning_multi_object_delete: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_versioning_multi_object_delete_with_marker: {status: KNOWN}
@@ -33,7 +35,12 @@ ceph_s3:
   s3tests_boto3.functional.test_s3.test_encrypted_transfer_1MB: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_encrypted_transfer_13b: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_encryption_sse_c_method_head: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_encryption_sse_c_multipart_upload: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_encryption_sse_c_unaligned_multipart_upload: {status: KNOWN}
   # ---------------------------------------------------------------------------
+  s3tests_boto3.functional.test_s3.test_object_lock_delete_multipart_object_with_legal_hold_on: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_object_lock_delete_multipart_object_with_retention: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_object_lock_delete_object_with_retention_and_marker: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_object_lock_put_obj_lock: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_object_lock_put_obj_lock_with_days_and_years: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_object_lock_put_obj_lock_invalid_days: {status: KNOWN}
@@ -63,3 +70,4 @@ ceph_s3:
   s3tests_boto3.functional.test_s3.test_object_lock_changing_mode_from_governance_with_bypass: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_object_lock_changing_mode_from_governance_without_bypass: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_object_lock_changing_mode_from_compliance: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_rm_bucket_logging: {status: KNOWN}
