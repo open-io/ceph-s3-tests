@@ -1646,12 +1646,13 @@ def _make_objs_dict(key_names):
 def test_versioning_concurrent_multi_object_delete():
     num_objects = 5
     num_threads = 5
-    bucket_name = get_new_bucket()
+    bucket = get_new_bucket_resource()
+    bucket_name = bucket.name
 
     check_configure_versioning_retry(bucket_name, "Enabled", "Enabled")
 
     key_names = ["key_{:d}".format(x) for x in range(num_objects)]
-    bucket = _create_objects(bucket_name=bucket_name, keys=key_names)
+    bucket = _create_objects(bucket_name=bucket_name, bucket=bucket, keys=key_names)
 
     client = get_client()
     versions = client.list_object_versions(Bucket=bucket_name)['Versions']
@@ -14616,7 +14617,7 @@ def test_put_bucket_logging_errors():
         })
         assert False, 'expected failure'
     except ClientError as e:
-        assert e.response['Error']['Code'] == 'NoSuchKey'
+        assert e.response['Error']['Code'] == 'InvalidTargetBucketForLogging'
 
     # log bucket has bucket logging
     log_bucket_name2 = get_new_bucket_name()

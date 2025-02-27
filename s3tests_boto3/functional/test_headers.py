@@ -34,7 +34,7 @@ def _add_header_create_object(headers, client=None):
 
 
 def _add_header_create_bad_object(headers, client=None):
-    """ Create a new bucket, add an object with a header. This should cause a failure 
+    """ Create a new bucket, add an object with a header. This should cause a failure
     """
     bucket_name = get_new_bucket()
     if client == None:
@@ -102,7 +102,7 @@ def _add_header_create_bucket(headers, client=None):
 
 
 def _add_header_create_bad_bucket(headers=None, client=None):
-    """ Create a new bucket, w/header customizations that should cause a failure 
+    """ Create a new bucket, w/header customizations that should cause a failure
     """
     bucket_name = get_new_bucket_name()
     if client == None:
