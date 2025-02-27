@@ -22,9 +22,7 @@ jobs:
           rm -rf s3compat/ceph-tests
           ln -s {{.cds.workspace}} s3compat/ceph-tests
           . virtualenv/bin/activate
-          PYTZ=$(sed -n -E -e 's/(pytz >=)(.+)$/\2/p' requirements.txt)
-          sed -E -e "s/(pytz >=)(.+)$/\\1${PYTZ}/" -i s3compat/requirements.txt
-          pip install -r s3compat/requirements.txt
+          pip install --progress-bar off -r s3compat/requirements.txt
           pip install --progress-bar off --upgrade "botocore<1.36.0" "awscli<1.37.0" awscli-plugin-endpoint
 
       - name: Generate configuration file
@@ -95,11 +93,10 @@ jobs:
         script: |+
           #!/bin/bash
           . virtualenv/bin/activate
-          ./s3compat/bin/get_ceph_test_attributes.py
           ./s3compat/bin/report.py \
             -kf "known-failures/common.yaml" \
             -kf "known-failures/{{.infra_id}}.yaml" \
-            --detailed s3compat/output/ceph-s3.out.yaml "tests_report.xml" \
+            "tests_report.xml" \
             | tee tests_report.txt
           ./results_to_metrics <tests_report.txt >tests_report.openmetrics
           number_of_failures="$(grep new_failures tests_report.openmetrics)"
@@ -107,6 +104,7 @@ jobs:
 
       - name: Save tests report
         script:
+          - set -x
           - "worker upload --tag='{{.cds.version}}' tests_report.*"
           - "[ -f debug.log ] && worker upload --tag='{{.cds.version}}' debug.log || true"
 
