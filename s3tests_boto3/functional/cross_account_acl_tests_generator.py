@@ -487,14 +487,14 @@ from botocore.exceptions import ClientError
 from .utils import assert_raises
 from .utils import _get_status
 from . import (
+    configfile,
+    setup_teardown,
     get_client,
     get_alt_client,
     get_new_bucket_name,
     get_alt_user_id,
 )
 
-def eq(actual, expected):
-    assert actual == expected
 """
 
 
@@ -553,7 +553,7 @@ def _generate_test_function(function, args, result):
         ClientError, alt_client.{fucntion}
     )
     status = _get_status(e.response)
-    eq(status, 403)
+    assert status == 403
 """
     if result:
         return "    alt_client." + function + "(" + ", ".join(args) + ")\n"
