@@ -42,14 +42,20 @@ jobs:
           # dev or prod release
           . .cds/versions
           export VERSION=1.0-focal
-          PACKAGE=ceph-s3-tests
           export REPO_SUBREPO=main
           export REPO_LIMIT=0
+          PACKAGE=ceph-s3-tests
           if [[ "{{ .git.tag }}" =~  ^[0-9]+\. ]]; then
             PACKAGE=${PACKAGE}-{{ .git.tag }}
           else
-            PACKAGE=${PACKAGE}-$(date +%Y%m%d).git{{ .git.hash.short }}
+            PACKAGE=${PACKAGE}-$(date +%Y%m%d%H%M).git{{ .git.hash.short }}
           fi
+          if [[ "{{ .git.branch }}" == "master" || "{{ .git.tag }}" =~ ^[0-9]+\. ]]; then
+            export OBSTO_BUILD="ovh${CDS_VERSION}"
+          else
+            export OBSTO_BUILD="ovhdev${CDS_VERSION}"
+          fi
+          export PACKAGE=${PACKAGE}-${OBSTO_BUILD}
           OUSER="{{ .cds.proj.drive_mirrors_objectstorage_openio_user }}"
           OPASS="{{ .cds.proj.drive_mirrors_objectstorage_openio_password }}"
           export PACKAGE=${PACKAGE}-ovh${CDS_VERSION}
