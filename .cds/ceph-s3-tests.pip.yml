@@ -23,7 +23,7 @@ jobs:
           ln -s {{.cds.workspace}} s3compat/ceph-tests
           . virtualenv/bin/activate
           pip install --progress-bar off -r s3compat/requirements.txt
-          pip install --progress-bar off --upgrade "botocore<1.36.0" "awscli<1.37.0" awscli-plugin-endpoint
+          pip install --progress-bar off --upgrade awscli awscli-plugin-endpoint
 
       - name: Generate configuration file
         script: |+
