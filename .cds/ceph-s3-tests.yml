@@ -96,6 +96,20 @@ workflow:
     one_at_a_time: true
     optional: true
 
+  ceph-s3-tests-infra3210:
+    pipeline: ceph-s3-tests
+    application: ceph-s3-tests
+    depends_on:
+      - root
+    environment: s3-tests-infra3210
+    conditions:
+      check:
+        - variable: infra_id
+          operator: eq
+          value: "3210"
+    one_at_a_time: true
+    optional: true
+
   ceph-s3-tests-infra4000:
     pipeline: ceph-s3-tests
     application: ceph-s3-tests
