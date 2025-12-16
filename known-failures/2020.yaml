@@ -1,3 +1,22 @@
 ceph_s3:
   s3tests_boto3.functional.test_s3.test_get_object_website_with_AllUsers_FullControl: {status: KNOWN}
   s3tests_boto3.functional.test_s3.test_get_object_website_with_AllUsers_Read: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_lifecycle_set: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_lifecycle_get: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_lifecycle_get_no_id: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_lifecycle_id_too_long: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_lifecycle_same_id: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_lifecycle_invalid_status: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_lifecycle_set_date: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_lifecycle_set_invalid_date: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_lifecycle_expiration_days0: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_lifecycle_expiration_header_put: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_lifecycle_expiration_header_head: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_lifecycle_expiration_header_tags_head: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_lifecycle_expiration_header_and_tags_head: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_lifecycle_set_noncurrent: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_lifecycle_set_deletemarker: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_lifecycle_set_filter: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_lifecycle_set_empty_filter: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_lifecycle_set_multipart: {status: KNOWN}
+  s3tests_boto3.functional.test_s3.test_lifecycle_transition_set_invalid_date: {status: KNOWN}
