@@ -136,34 +136,34 @@ bucket cleanup'.format(bucket, delta.total_seconds()))
                     Delete={'Objects': objects, 'Quiet': True},
                     BypassGovernanceRetention=True)
 
-    try:
-        client.delete_bucket(Bucket=bucket)
-    except ClientError as err:
-        # We may get NoSuchBucket after a timeout/retry
-        if err.response.get('Error', {}).get('Code') != 'NoSuchBucket':
-            raise
+    client.delete_bucket(Bucket=bucket)
+
 
 def nuke_prefixed_buckets(prefix, client=None):
-    if client == None:
+    if client is None:
         client = get_client()
 
     buckets = get_buckets_list(client, prefix)
 
-    err = None
+    saved_err = None
     for bucket_name in buckets:
         try:
             nuke_bucket(client, bucket_name)
-        except Exception as e:
+        except ClientError as err:
+            # We may get NoSuchBucket after a timeout/retry
+            if err.response.get("Error", {}).get("Code") != "NoSuchBucket":
+                saved_err = err
+        except Exception as err:
             # The exception shouldn't be raised when doing cleanup. Pass and continue
             # the bucket cleanup process. Otherwise left buckets wouldn't be cleared
             # resulting in some kind of resource leak. err is used to hint user some
             # exception once occurred.
-            err = e
-            pass
-    if err:
-        raise err
+            saved_err = err
+    if saved_err:
+        raise saved_err
 
     print('Done with cleanup of buckets in tests.')
+
 
 def configured_storage_classes():
     sc = ['STANDARD']
