@@ -426,6 +426,23 @@ hooks:
           }
 
     - type: Scheduler
+      name: Periodic tests on infra 3210
+      config:
+        cron: "6 6 * * *"
+        timezone: UTC
+        payload: |-
+          {
+            "git.author": "",
+            "git.branch": "master",
+            "git.hash": "",
+            "git.hash.before": "",
+            "git.message": "",
+            "git.repository": "OPENIO/ceph-s3-tests",
+            "git.tag": "",
+            "infra_id": "3210"
+          }
+
+    - type: Scheduler
       name: Periodic tests on infra 4000
       config:
         cron: "9 3,15 * * *"
