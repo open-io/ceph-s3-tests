@@ -1914,6 +1914,24 @@ def test_object_metadata_replaced_on_put():
     got = response['Metadata']
     assert got == {}
 
+def test_object_metadata_keys_with_dash_and_underscore():
+    """
+    Verify that metadata keys containing dashes and underscores are accepted
+    on put_object and can be retrieved via get_object and head_object without error.
+    """
+    bucket_name = get_new_bucket()
+    client = get_client()
+    metadata = {'my-dash': 'my-value', 'test_underscore': 'my-value'}
+    client.put_object(Bucket=bucket_name, Key='mytoto', Body='', Metadata=metadata)
+
+    get_response = client.get_object(Bucket=bucket_name, Key='mytoto')
+    assert get_response['Metadata'].get('my-dash') == 'my-value'
+    assert get_response['Metadata'].get('test_underscore') == 'my-value'
+
+    head_response = client.head_object(Bucket=bucket_name, Key='mytoto')
+    assert head_response['Metadata'].get('my-dash') == 'my-value'
+    assert head_response['Metadata'].get('test_underscore') == 'my-value'
+
 def test_object_write_file():
     bucket_name = get_new_bucket()
     client = get_client()
